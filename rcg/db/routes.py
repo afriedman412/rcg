@@ -11,27 +11,6 @@ nav_key = {
     'song': (Song, SongSchema())
 }
 
-@db_routes.route("/rcg/<data_type>", methods=["POST"])
-def new_entry(data_type):
-    lfm = dh_.lfm_network
-    Table, schema = tuple(nav_key.get(data_type))
-    name = request.json['name']
-
-    if data_type == 'song':
-        song_spotify_id = request.json['song_spotify_id']
-        artist_spotify_id = request.json['artist_spotify_id']
-        new_entry = Table(song_spotify_id, name, artist_spotify_id,)
-
-    elif data_type == 'artist':
-        wikipedia_gender = gender_count(name)
-        lfm_gender = gender_count(name, lastfm_network=lfm)
-
-        new_entry = Table(name, lfm_gender, wikipedia_gender)
-
-    db_.session.add(new_entry)
-    db_.session.commit()
-    return schema.jsonify(new_entry)
-
 @db_routes.route("/rcg/<table>/<id>", methods=["GET"])
 def get_entry(table, id):
     Table, schema = tuple(nav_key.get(table))
@@ -39,7 +18,7 @@ def get_entry(table, id):
     print(entry)
     return schema.jsonify(entry)
 
-# add new chart
+# get new chart
 @db_routes.route("/rcg/chart/new/", methods=["POST"])
 def get_new_chart():
     lfm = dh_.lfm_network
@@ -105,14 +84,4 @@ def get_recent_chart():
     entries = db_.session.query(ChartEntry).filter(ChartEntry.chart_date==max_chart_date).all()
     schema = ChartEntrySchema(many=True)
     return schema.jsonify(entries)
-
-# fix artist gender
-@db_routes.route("/rcg/gupdate/<a>/<g>", methods=["POST"])
-def update_gender(a, g):
-    Artist.query.filter_by(artist_name=f'{a}').update(dict(gender=f"{g}")) 
-    db_.session.commit()
-
-    new_artist_entry = db_.session.query(Artist).filter(Artist.artist_name==f"{a}").first()
-    schema = ArtistSchema()
-    return schema.jsonify(new_artist_entry)
     
