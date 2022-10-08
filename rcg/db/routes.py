@@ -1,5 +1,6 @@
-from flask import Blueprint, request
+from flask import Blueprint
 from sqlalchemy import func
+from collections import Counter
 from ..code.helpers import gender_count, parse_track, get_week_start
 from .. import db_, dh_
 from .models import Artist, ChartEntry, Song, ArtistSchema, SongSchema, ChartEntrySchema
@@ -10,6 +11,36 @@ nav_key = {
     'artist': (Artist, ArtistSchema()),
     'song': (Song, SongSchema())
 }
+
+@db_routes.route("/rcg/count/", methods=["GET"])
+def get_counts():
+    chart_date = get_week_start()
+    q = db_.session.query(ChartEntry.chart_date, Song.song_name, Artist.artist_name, Artist.gender).join(
+        Song, ChartEntry.song_spotify_id==Song.song_spotify_id
+    ).outerjoin(
+        Artist, Song.artist_spotify_id==Artist.artist_spotify_id
+    ).filter(
+        ChartEntry.chart_date==chart_date
+    ).all()
+    return Counter([s[3] for s in q])
+
+@db_routes.route("/rcg/count/<g>", methods=["GET"])
+def get_gender(g):
+    chart_date = get_week_start()
+    q = db_.session.query(ChartEntry.chart_date, Song.song_name, Artist.artist_name, Artist.gender).join(
+        Song, ChartEntry.song_spotify_id==Song.song_spotify_id
+    ).outerjoin(
+        Artist, Song.artist_spotify_id==Artist.artist_spotify_id
+    ).filter(
+        ChartEntry.chart_date==chart_date
+    ).filter(
+        Artist.gender==g
+        ).all()
+    return Counter([s[2] for s in q])
+    
+
+
+
 
 @db_routes.route("/rcg/<table>/<id>", methods=["GET"])
 def get_entry(table, id):
