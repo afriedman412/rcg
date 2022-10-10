@@ -37,10 +37,6 @@ def get_gender(g):
         Artist.gender==g
         ).all()
     return Counter([s[2] for s in q])
-    
-
-
-
 
 @db_routes.route("/rcg/<table>/<id>", methods=["GET"])
 def get_entry(table, id):
@@ -62,6 +58,7 @@ def get_new_chart():
         ChartEntry.chart_date==chart_date
     ).all()
     if {q_.song_spotify_id for q_ in q} == {t[1] for t in all_tracks}:
+        print(f"no updates, chart date {chart_date}")
         return {"status": "no update for chart date"}
 
     for t in all_tracks:
@@ -81,30 +78,42 @@ def get_new_chart():
         for a in artists:
             # add artists
             name, artist_spotify_id = a
-            check = db_.session.query(Artist).filter_by(artist_name=f"{name}").first()
-            print(check)
-            if not check:
+            artist_check = db_.session.query(Artist).filter_by(artist_spotify_id=f"{artist_spotify_id}").first()
+            if not artist_check:
+                print(f"adding {name} to artists")
                 lfm_gender = gender_count(name, lastfm_network=lfm)
                 wikipedia_gender = gender_count(name)
 
                 artist_entry = Artist(
                     name, artist_spotify_id, lfm_gender, wikipedia_gender)
                 db_.session.add(artist_entry)
+                db_.session.commit()
 
             # add song/artist relationships
-            song_artist_entry = Song(
-                song_spotify_id = song_spotify_id,
-                song_name = song_name,
-                artist_spotify_id = artist_spotify_id,
-                artist_name = name,
-                primary = primary
-            )
-            primary = False
-            db_.session.add(song_artist_entry)
+            song_check = db_.engine.execute(
+                f"""
+                SELECT * FROM song 
+                WHERE song_spotify_id = '{song_spotify_id}'
+                AND artist_spotify_id = '{artist_spotify_id}'
+                """
+            ).first()
+            if not song_check:
+                print(f"adding {name} on {song_name}")
+                song_artist_entry = Song(
+                    song_spotify_id = song_spotify_id,
+                    song_name = song_name,
+                    artist_spotify_id = artist_spotify_id,
+                    artist_name = name,
+                    primary = primary
+                )
+                db_.session.add(song_artist_entry)
+                db_.session.commit()
+            primary = False # no matter what, first artist is primary
 
-        db_.session.commit()
+        
         new_entries.append(chart_entry)
 
+    print(f"chart date updated for {chart_date}")
     schema = ChartEntrySchema(many=True)
     return schema.jsonify(new_entries)
 
