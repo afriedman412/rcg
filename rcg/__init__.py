@@ -1,7 +1,5 @@
-from .code.helpers import DataHandler
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from flask import render_template
 from dotenv import load_dotenv
 import connexion
 import os
@@ -19,4 +17,3 @@ def app_factory():
 app_ = app_factory()
 db_ = SQLAlchemy(app_)
 ma_ = Marshmallow(app_)
-dh_ = DataHandler(app_)

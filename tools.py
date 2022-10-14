@@ -1,10 +1,11 @@
 from rcg import app_, db_
 from rcg.db.models import Artist
-from rcg.db.routes import get_new_chart, get_counts, get_week_start
+from rcg.db.routes import get_counts
+from rcg.code.helpers import get_date
+from rcg.code.code import get_new_chart, DataHandler
 import os
 import click
 from dotenv import load_dotenv
-
 
 @click.group()
 @click.option("-l", "--local", is_flag=True)
@@ -25,8 +26,8 @@ def count():
     return
 
 @tools.command()
-def xweek():
-    chart_date = get_week_start()
+def xday():
+    chart_date = get_date()
     with app_.app_context():
         db_.engine.execute(
             f"""
@@ -59,8 +60,9 @@ def create():
 @tools.command()
 def update():
     """adds new rcg data if it exists"""
+    dh_ = DataHandler(app_)
     with app_.app_context():
-        output = get_new_chart()
+        output = get_new_chart(db_, dh_)
         click.echo('db updated')
     return output
 
