@@ -93,6 +93,7 @@ def get_new_chart(db_, dh_: DataHandler):
             chart_date = chart_date
         )
         db_.session.add(chart_entry)
+        db_.session.commit()
 
         primary = True # only the first artist is the primary
         for a in artists:
