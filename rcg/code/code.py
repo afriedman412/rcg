@@ -6,6 +6,9 @@ from .helpers import get_date, parse_track
 from ..db.models import ChartEntry, ChartEntrySchema, Artist, Song
 
 class DataHandler:
+    """
+    Credential manager for spotify and lastfm, also used to load the actual playlist from spotify.
+    """
     def __init__(self, app):
         self.reset_credentials(app)
         return
@@ -32,9 +35,11 @@ class DataHandler:
             ]
         return all_tracks
 
-def gender_count(artist, lastfm_network=None, return_counts=False):
+def gender_count(artist: str, lastfm_network=None, return_counts: bool=False) -> int:
     """
-    If no last fm network is provided, use wikipedia.
+    Counts pronouns in either lastfm or wikipedia bio to make best guess at gender.
+
+    If no last fm network is provided, uses wikipedia.
     """
     if lastfm_network:
         try:
@@ -67,16 +72,17 @@ def gender_count(artist, lastfm_network=None, return_counts=False):
     else:
         return max(counts, key=counts.get)
 
-def get_new_chart(db_, dh_: DataHandler):
+def get_new_chart(db_, dh_: DataHandler): # TODO: chart object should be a class, probably
+    """
+    Loads latest Rap Caviar data and does all requisite processing.
+    """
     lfm = dh_.lfm_network
     all_tracks = dh_.load_rap_caviar()
     new_entries = []
     chart_date = get_date()
 
     # verify chart has changed
-    q = db_.session.query(ChartEntry).filter(
-        ChartEntry.chart_date==chart_date
-    ).all()
+    q = db_.session.query(ChartEntry).filter(ChartEntry.chart_date==chart_date).all()
     if {q_.song_spotify_id for q_ in q} == {t[1] for t in all_tracks}:
         print(f"no updates, chart date {chart_date}")
         return {"status": "no update for chart date"}

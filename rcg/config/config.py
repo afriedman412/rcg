@@ -8,3 +8,11 @@ LAST_FM_PW = os.environ['LAST_FM_PW']
 SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ECHO = True
+
+COLORS = {
+    "Male": "#a1c3d1",
+    "Female": "#f09933",
+    "Non-Binary": "#816f88"
+}
+
+GENDERS = ['Male', 'Female', 'Non-Binary']

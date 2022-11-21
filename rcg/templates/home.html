@@ -1,0 +1,58 @@
+<html>
+<head>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/stylesheet.css') }}">
+</head>
+<body>
+<div class="wrapper">
+    <h1 class="site-title s-green">
+        <a id="Top"></a>
+        <a href="https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd">Rap Caviar</a> Gender Tracker
+    </h1>
+    <h2 class="site-title">{{ chart.chart_date }}</h2>
+    <ul class="spacer">
+        <li><a href="#Tally">Breakdown by artist</a></li>
+        <li><a href="#FullChart">Current chart</a></li>
+        <li><a href="#Faq">FAQ</a></li>
+    </ul>
+
+    <div class="spacer">
+        {% for g in ['Male', 'Female', 'Non-Binary'] %}
+        <h4 class="site-title"><span class="{{ g }}">{{ g }}: </span>{{ chart.gender_count_data(g)['Total'] }} Credits ({{ chart.gender_count_data(g)['Percentage'] }}%)</h4>
+        {% endfor %}
+    </div>
+
+    <div class="bar-chart-container">
+        <img src="data:image/png;base64, {{ chart.make_plots() }}">
+    </div>
+
+    <h2 class="chart-title"><a id="Tally"></a><a href="#Top">Tally</a></h2>
+    {% for g in ['male', 'female', 'non-binary'] %}
+    <h4 class="col-head {{g}}">{{g.title()}}</h4>
+    {% endfor %}
+
+    {% for row in chart.gender_counts_full %}
+        {% set class="even" if loop.index % 2 == 0 else "odd" %}
+        {% for a,c in chart.gender_counts_keys %}
+        <div class="grid-item {{class}} g{{loop.index}}">
+            <span class="tally-artist">{{row.get(a, None)}}</span><span class="tally-count">{{row.get(c,None)}}</span>
+        </div>
+        {% endfor %}
+    {% endfor %}
+
+    <h2 class="chart-title"><a id="FullChart"></a><a href="#Top">Full Chart</a></h2>
+    {% for c in ['Song', 'Primary Artist', 'Features'] %}
+    <h4 class="col-head">{{c}}</h4>
+    {% endfor %}
+    
+    {% for row in chart.chart_w_features %}
+        {% set class="even" if loop.index % 2 == 0 else "odd" %}
+        {% for c in ['Song', 'Primary Artist', 'Features'] %}
+        <div class="grid-item {{class}} g{{loop.index}}">
+            <span class="tally-artist">{{row.get(c)}}</span>
+        </div>
+        {% endfor %}
+    {% endfor %}
+
+</div>
+</body>
+</html>
