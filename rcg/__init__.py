@@ -1,10 +1,16 @@
+"""Initialize Flask app."""
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from dotenv import load_dotenv
 import connexion
+from dotenv import load_dotenv
 import os
 
-def app_factory():
+def init_app():
+    """
+    Construct core Flask application with embedded Dash app.
+    
+    Adapted to add SQLAlchemy and Marshmallow functionality
+    """
     load_dotenv()
     dir_ = os.path.abspath(os.path.dirname(__file__))
 
@@ -12,8 +18,15 @@ def app_factory():
     app = connex_app.app
     app.config.from_pyfile('config/config.py')
 
-    return app
+    with app.app_context():
+        # Import Dash application
+        from .dash.dashboard import init_dashboard
+        app = init_dashboard(app)
 
-app_ = app_factory()
-db_ = SQLAlchemy(app_)
-ma_ = Marshmallow(app_)
+        return app
+
+def yield_db_ma(app):
+    return SQLAlchemy(app), Marshmallow(app)
+
+app = init_app()
+db_, ma_ = yield_db_ma(app)

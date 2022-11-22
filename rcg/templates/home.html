@@ -15,6 +15,10 @@
         <li><a href="#Faq">FAQ</a></li>
     </ul>
 
+    <a href="/dashapp/" class="dash-link">
+        <span>Embdedded Plotly Dash</span>
+    </a>
+
     <div class="spacer">
         {% for g in ['Male', 'Female', 'Non-Binary'] %}
         <h4 class="site-title"><span class="{{ g }}">{{ g }}: </span>{{ chart.gender_count_data(g)['Total'] }} Credits ({{ chart.gender_count_data(g)['Percentage'] }}%)</h4>

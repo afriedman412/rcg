@@ -2,7 +2,7 @@ import pandas as pd
 from pandas import DataFrame
 from typing import Tuple, Literal
 import regex as re
-from .. import db_ # TODO: this, better
+# from .. import db_ # TODO: this, better
 import datetime as dt
 from ..config.config import COLORS, GENDERS # TODO: also this, better
 
@@ -24,7 +24,7 @@ class Chart:
         self.full_chart, self.chart_date = self.load_chart(date)
         return
 
-    def load_chart(self, date: str=None) -> Tuple[DataFrame, str]:
+    def load_chart(self, db_, date: str=None) -> Tuple[DataFrame, str]:
         """
         Loads the latest Rap Caviar chart from the db.
         
