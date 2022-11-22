@@ -5,7 +5,7 @@ import spotipy
 from .helpers import get_date, parse_track
 from ..db.models import ChartEntry, ChartEntrySchema, Artist, Song
 
-class DataHandler:
+class Creds:
     """
     Credential manager for spotify and lastfm, also used to load the actual playlist from spotify.
     """
@@ -14,26 +14,28 @@ class DataHandler:
         return
 
     def reset_credentials(self, app):
-        spotify_cred_manager = spotipy.oauth2.SpotifyClientCredentials(
-            app.config['SPOTIFY_ID'], 
-            app.config['SPOTIFY_SECRET']
-            )
-        self.sp = spotipy.Spotify(client_credentials_manager=spotify_cred_manager)
+        self.sp = self.access_spotify(app)
+        self.lfm_network = self.access_lfm(app)
 
-        self.lfm_network = pylast.LastFMNetwork(
+    def access_lfm(self, app):
+        return pylast.LastFMNetwork(
             api_key=app.config['LAST_FM_ID'],
             api_secret=app.config['LAST_FM_SECRET'],
             username=app.config['LAST_FM_USER'],
             password_hash=pylast.md5(app.config['LAST_FM_PW'])
         )
-    
-    def load_rap_caviar(self):
-        rc = self.sp.playlist('spotify:user:spotify:playlist:37i9dQZF1DX0XUsuxWHRQd')
-        all_tracks = [
-            (p['track']['name'], p['track']['id'], 
-            [(a['name'], a['id']) for a in p['track']['artists']]) for p in rc['tracks']['items']
-            ]
-        return all_tracks
+
+    def access_spotify(self, app):
+        spotify_cred_manager = spotipy.oauth2.SpotifyClientCredentials(
+            app.config['SPOTIFY_ID'], 
+            app.config['SPOTIFY_SECRET']
+            )
+        return spotipy.Spotify(client_credentials_manager=spotify_cred_manager)
+
+class ChartLoader(Creds):
+    def __init__(self, app):
+        super(ChartLoader, self).__init__(app) # TODO: better credential storage than app
+        return
 
 def gender_count(artist: str, lastfm_network=None, return_counts: bool=False) -> int:
     """

@@ -18,15 +18,18 @@ def init_app():
     app = connex_app.app
     app.config.from_pyfile('config/config.py')
 
+    return app
+
+def augment_app(app):
+    db_ = SQLAlchemy(app)
+    ma_ = Marshmallow(app)
+    
     with app.app_context():
         # Import Dash application
         from .dash.dashboard import init_dashboard
-        app = init_dashboard(app)
+        app = init_dashboard(app, db_)
 
-        return app
-
-def yield_db_ma(app):
-    return SQLAlchemy(app), Marshmallow(app)
+        return app, db_, ma_
 
 app = init_app()
-db_, ma_ = yield_db_ma(app)
+app, db_, ma_ = augment_app(app)

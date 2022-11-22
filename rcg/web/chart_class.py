@@ -2,8 +2,7 @@ import pandas as pd
 from pandas import DataFrame
 from typing import Tuple, Literal
 import regex as re
-# from .. import db_ # TODO: this, better
-import datetime as dt
+from ..code.helpers import get_date
 from ..config.config import COLORS, GENDERS # TODO: also this, better
 
 import matplotlib
@@ -18,45 +17,18 @@ import logging # TODO: add logging
 
 class Chart:
     """
-    For acquiring and manipulating chart data.
+    Preps chart data for flask template rendering.
+
+    Also does Seaborn plotting as a Dash alternative. TODO: remove this
+
+    Moved "load_chart" to "code" section.
+
+    TODO: consolidate the load chart protocol with the dash code
     """
-    def __init__(self, date: str=None):
-        self.full_chart, self.chart_date = self.load_chart(date)
+    def __init__(self, full_chart: DataFrame, chart_date: str=None):
+        self.full_chart = full_chart
+        self.chart_date = chart_date if chart_date else get_date()
         return
-
-    def load_chart(self, db_, date: str=None) -> Tuple[DataFrame, str]:
-        """
-        Loads the latest Rap Caviar chart from the db.
-        
-        Assumes largest chart_date is latest chart.
-
-        returns:
-        full_chart: dataframe
-        chart_date: string of latest chart date
-        """
-        q = """
-            SELECT chart.song_name, chart.primary_artist_name, chart_date, artist.artist_name, gender
-            FROM chart
-            INNER JOIN song ON chart.song_spotify_id=song.song_spotify_id
-            LEFT JOIN artist ON song.artist_spotify_id=artist.spotify_id
-            """
-
-        if not date:
-            q += """
-                WHERE chart_date=(SELECT max(chart_date) FROM chart)
-                """
-                
-        else:
-            q += f"""
-                WHERE chart_date='{date}'
-                """
-
-        full_chart = pd.read_sql(q, db_.engine)
-
-        full_chart['gender'] = full_chart['gender'].map({"m": "Male", "f": "Female", "n": "Non-Binary"})
-        chart_date = full_chart['chart_date'][0]
-        chart_date = dt.datetime.strptime(chart_date, "%Y-%m-%d").strftime("%B %d, %Y")
-        return full_chart, chart_date
     
     @property
     def count_data(self) -> DataFrame:

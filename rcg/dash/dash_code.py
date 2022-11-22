@@ -1,25 +1,38 @@
 from dash import html
 from dash.dcc import Graph
+from pandas import DataFrame
 from plotly.graph_objects import Figure, Bar
-from ..web.chart_class import Chart
 from ..config.config import COLORS
+from ..code.helpers import get_date
+
 
 class BarGrapher:
     """
     Splitting this out for easier code nav and consolidation of purpose.
 
     load_plot from Chart, bar_charter and bar_charts from GridMaker
+
+    Redundant for now, only doing this to test Dash integration!
     """
-    def __init__(self, c: Chart):
-        self.c = c
+    def __init__(self, full_chart: DataFrame, chart_date: str=None):
+        self.full_chart = full_chart
+        self.chart_date = chart_date if chart_date else get_date()
         return
 
     def load_plot(self, normalize: bool=False) -> Figure:
         """
         Creates the bar plot for both total and normalized counts.
         """
-        count_df, title = self.c.count_df(normalize)
+        
+        if normalize:
+            count_df = self.full_chart['gender'].value_counts(normalize=True).round(3)*100
+            title = f"% of Artist Credits<br>({self.chart_date})"
+            
+        else:
+            count_df =  self.full_chart['gender'].value_counts()
+            title = f"Total Artist Credits<br>({self.chart_date})"
 
+        count_df = count_df.rename_axis('gender').reset_index(name='count')
         fig = Figure(
             Bar(
                 x=count_df['gender'], 
@@ -52,6 +65,7 @@ class BarGrapher:
 
     def bar_charter(self, id_, fig) -> Graph:
         class_name = 'bar-chart l' if id_=='total' else 'bar-chart r'
+
         return html.Div(Graph(
             id=id_, 
             figure=fig, 

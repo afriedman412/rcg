@@ -1,1 +1,2 @@
 - separate data query from formatting/etc
+- add scheduler to AWS???
