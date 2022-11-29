@@ -74,7 +74,7 @@ def gender_count(artist: str, lastfm_network=None, return_counts: bool=False) ->
     else:
         return max(counts, key=counts.get)
 
-def get_new_chart(db_, dh_: DataHandler): # TODO: chart object should be a class, probably
+def get_new_chart(db_, dh_: Creds): # TODO: chart object should be a class, probably
     """
     Loads latest Rap Caviar data and does all requisite processing.
     """

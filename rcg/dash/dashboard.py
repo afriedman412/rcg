@@ -15,8 +15,6 @@ def init_dashboard(server, db_):
     full_chart, chart_date = load_chart(db_)
     bg = BarGrapher(full_chart, chart_date)
     # Create Dash Layout
-    dash_app.layout = html.Div(
-        className="wrapper",
-         children = bg.bar_charts)
+    dash_app.layout = html.Div(children = bg.bar_charts)
 
     return dash_app.server

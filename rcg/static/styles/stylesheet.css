@@ -10,7 +10,21 @@ body {
   a {
     color:inherit;
   }
+
+  ul {
+    grid-column: -1/1;
+  }
+
+  li {
+    margin: 0 1vw 0vh 1vw;
+  }
   
+  iframe{
+    grid-column: 1 / -1;
+    float: left;
+    border: none;
+  }
+
   .s-green {
     color: #1fd362;
   }
@@ -48,7 +62,7 @@ body {
   
   .bar-chart-container {
     grid-column: 1 / -1;
-    float: left;
+    margin: 0 auto;
   } 
   
   .bar-chart {
@@ -111,4 +125,8 @@ body {
   
   .tally-count {
     float: right;
+  }
+
+  .faq {
+    grid-column: 1 / -1;
   }

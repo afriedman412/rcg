@@ -34,8 +34,9 @@ class Chart:
     def count_data(self) -> DataFrame:
         count_data = pd.DataFrame(
                 [
-                self.full_chart['gender'].value_counts(),
-                self.full_chart['gender'].value_counts(normalize=True).round(3)*100],
+                self.full_chart['gender'].value_counts().astype(int),
+                self.full_chart['gender'].value_counts(normalize=True).map(lambda n: n*100).round(1)
+                ],
                 ["Total", "Percentage"]
             )
 

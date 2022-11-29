@@ -39,7 +39,8 @@ class BarGrapher:
                 y=count_df['count'],
                 marker_color=list(COLORS.values()),
                 text=count_df['count'],
-                textposition='outside'
+                textposition='outside',
+                textfont_color="white"
             )
         )
         
@@ -48,14 +49,20 @@ class BarGrapher:
                 'text':title,
                 'x':0.5,
                 'xanchor': 'center',
-                'yanchor': 'bottom'
+                'yanchor': 'bottom',
+                'font': {
+                    'color':'white',
+                    'family': 'Arial'
+                    },
             },
             yaxis_range=[0,110] if normalize else [
                 0, count_df['count'].max()*1.2],
             margin=dict(t=70, r=20, l=20, b=30),
-            paper_bgcolor="white",
-            plot_bgcolor="white",
-            autosize=True
+            paper_bgcolor="black",
+            plot_bgcolor="black",
+            autosize=True,
+            yaxis=dict(color='white', ticksuffix="  "),
+            xaxis=dict(color='white')
             )
 
         if normalize:
