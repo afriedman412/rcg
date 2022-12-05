@@ -8,3 +8,4 @@ notes.md
 *.ipynb
 .DS_Store
 .env
+req.sh
