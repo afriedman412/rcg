@@ -1,9 +1,8 @@
-from rcg import app_, db_
-from rcg.db.models import Artist
+from rcg import app
+from rcg.db import db_commit
 from rcg.db.routes import get_counts
 from rcg.code.helpers import get_date
-from rcg.code.code import get_new_chart, DataHandler
-import os
+from rcg.code.code import update_chart, Creds
 import click
 from dotenv import load_dotenv
 
@@ -13,14 +12,14 @@ from dotenv import load_dotenv
 def tools(local, silence):
     load_dotenv()
     if local:
-        app_.SQLALCHEMY_DATABASE_URI = "postgresql:///rcg"
+        app.SQLALCHEMY_DATABASE_URI = "postgresql:///rcg"
     if silence:
-        app_.SQLALCHEMY_ECHO = False
+        app.SQLALCHEMY_ECHO = False
     pass
 
 @tools.command()
 def count():
-    with app_.app_context():
+    with app.app_context():
         c = get_counts()
         click.echo(c)
     return
@@ -28,41 +27,20 @@ def count():
 @tools.command()
 def xday():
     chart_date = get_date()
-    with app_.app_context():
-        db_.engine.execute(
-            f"""
-            DELETE FROM chart
-            WHERE chart_date='{chart_date}'
-            """
-        )
+    q = f"""
+        DELETE FROM chart
+        WHERE chart_date='{chart_date}'
+        """
+    db_commit(q)
     click.echo(f"{chart_date} data deleted")
-    return
-
-@tools.command()
-def reset():
-    """reset the rcg database"""
-    if os.path.exists('./rcg/config/app.db'):
-        os.remove('./rcg/config/app.db')
-    with app_.app_context():
-        db_.drop_all()
-        db_.create_all()
-        click.echo("db reset")
-    return
-
-@tools.command()
-def create():
-    """initialize the rcg database"""
-    with app_.app_context():
-        db_.create_all()
-        click.echo("db created")
     return
 
 @tools.command()
 def update():
     """adds new rcg data if it exists"""
-    dh_ = DataHandler(app_)
-    with app_.app_context():
-        output = get_new_chart(db_, dh_)
+    creds = Creds(app)
+    with app.app_context():
+        output = update_chart(creds, app)
         click.echo('db updated')
     return output
 
@@ -70,10 +48,13 @@ def update():
 @click.option("-a", "--artist")
 @click.option("-g", "--gender")
 def gender(artist, gender):
-    with app_.app_context():
-        Artist.query.filter_by(artist_name=f'{artist}').update(dict(gender=f"{gender}")) 
-        db_.session.commit()
-        click.echo(f'{artist} gender is now {gender}')
+    q = f"""
+    UPDATE artist
+    SET gender="{gender}"
+    WHERE artist_name="{artist}";
+    """
+    db_commit(q)
+    click.echo(f'{artist} gender is now {gender}')
     return
 
 if __name__=="__main__":

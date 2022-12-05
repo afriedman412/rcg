@@ -6,9 +6,6 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-flask-sqlalchemy = "^3.0.2"
-flask-marshmallow = "^0.14.0"
-marshmallow-sqlalchemy = "^0.28.1"
 spotipy = "^2.20.0"
 wikipedia = "^1.4.0"
 pylast = "^5.0.0"
@@ -22,6 +19,8 @@ psycopg2-binary = "^2.9.5"
 regex = "^2022.10.31"
 seaborn = "^0.12.1"
 dash = "^2.7.0"
+pymysql = "^1.0.2"
+flask = "^2.2.2"
 
 
 [tool.poetry.dev-dependencies]

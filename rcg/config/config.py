@@ -8,6 +8,9 @@ LAST_FM_PW = os.environ['LAST_FM_PW']
 SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ECHO = True
+MYSQL_URL = os.environ['MYSQL_URL']
+MYSQL_USER = os.environ['MYSQL_USER']
+MYSQL_PW = os.environ['MYSQL_PW']
 
 COLORS = {
     "Male": "#a1c3d1",
