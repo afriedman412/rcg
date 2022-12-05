@@ -2,20 +2,20 @@
 from pymysql import connect
 import os
 
-if os.environ['FLASK_ENV'] == "development":
+if os.environ.get('FLASK_ENV') == "development":
     mysql_conn = connect(
-        user=os.environ['LOCAL_MYSQL_USER'],
-        password=os.environ['LOCAL_MYSQL_PW'],
-        host=os.environ['LOCAL_MYSQL_URL'],
+        user=os.environ.get('LOCAL_MYSQL_USER'),
+        password=os.environ.get('LOCAL_MYSQL_PW'),
+        host=os.environ.get('LOCAL_MYSQL_URL'),
         port=3306,
         db='rcg-testo'
     )
 
 else:
     mysql_conn = connect(
-        user=os.environ['MYSQL_USER'],
-        password=os.environ['MYSQL_PW'],
-        host=os.environ['MYSQL_URL'],
+        user=os.environ.get('MYSQL_USER'),
+        password=os.environ.get('MYSQL_PW'),
+        host=os.environ.get('MYSQL_URL'),
         port=3306,
         db='rcg'
     )
