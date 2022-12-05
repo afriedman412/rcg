@@ -2,6 +2,7 @@ import pylast
 import wikipedia
 from collections import Counter
 import spotipy
+import os
 from .helpers import get_date, parse_track, parse_genders, load_rap_caviar, get_recent_chart
 from ..db import db_commit, db_query
 
@@ -9,33 +10,28 @@ class Creds:
     """
     Credential manager for spotify and lastfm, also used to load the actual playlist from spotify.
     """
-    def __init__(self, app):
-        self.reset_credentials(app)
+    def __init__(self):
+        self.reset_credentials()
         return
 
-    def reset_credentials(self, app):
-        self.sp = self.access_spotify(app)
-        self.lfm_network = self.access_lfm(app)
+    def reset_credentials(self):
+        self.sp = self.access_spotify()
+        self.lfm_network = self.access_lfm()
 
-    def access_lfm(self, app):
+    def access_lfm(self):
         return pylast.LastFMNetwork(
-            api_key=app.config['LAST_FM_ID'],
-            api_secret=app.config['LAST_FM_SECRET'],
-            username=app.config['LAST_FM_USER'],
-            password_hash=pylast.md5(app.config['LAST_FM_PW'])
+            api_key=os.environ.get('LAST_FM_ID'),
+            api_secret=os.environ.get('LAST_FM_SECRET'),
+            username=os.environ.get('LAST_FM_USER'),
+            password_hash=pylast.md5(os.environ.get('LAST_FM_PW'))
         )
 
-    def access_spotify(self, app):
+    def access_spotify(self):
         spotify_cred_manager = spotipy.oauth2.SpotifyClientCredentials(
-            app.config['SPOTIFY_ID'], 
-            app.config['SPOTIFY_SECRET']
+            os.environ.get('SPOTIFY_ID'), 
+            os.environ.get('SPOTIFY_SECRET')
             )
         return spotipy.Spotify(client_credentials_manager=spotify_cred_manager)
-
-class ChartLoader(Creds):
-    def __init__(self, app):
-        super(ChartLoader, self).__init__(app) # TODO: better credential storage than app
-        return
 
 def gender_count(artist: str, lastfm_network=None, return_counts: bool=False) -> int:
     """
@@ -74,17 +70,15 @@ def gender_count(artist: str, lastfm_network=None, return_counts: bool=False) ->
     else:
         return max(counts, key=counts.get)
 
-def update_chart(creds: Creds, app): # TODO: chart object should be a class, probably
+def update_chart(creds: Creds): # TODO: chart object should be a class, probably
     """
     Loads latest Rap Caviar data and does all requisite processing.
     """
     lfm = creds.lfm_network
-    sp = creds.access_spotify(app)
+    sp = creds.access_spotify()
     newest_chart = load_rap_caviar(sp)
     chart_date = get_date()
     latest_chart = get_recent_chart()
-
-    print(type(latest_chart), type(newest_chart))
 
     if {t[2] for t in latest_chart} == {t[1] for t in newest_chart}:
         print(f"no updates, chart date {chart_date}")

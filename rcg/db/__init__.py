@@ -2,7 +2,6 @@
 from pymysql import connect
 import os
 
-
 mysql_conn = connect(
     user=os.environ.get('MYSQL_USER'),
     password=os.environ.get('MYSQL_PW'),
