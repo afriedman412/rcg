@@ -5,11 +5,6 @@ import regex as re
 from ..code.helpers import get_date
 from ..config.config import COLORS, GENDERS # TODO: also this, better
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 from io import BytesIO
 import base64
 import logging # TODO: add logging
@@ -44,34 +39,6 @@ class Chart:
 
     def gender_count_data(self, g: Literal["m", "f", "n", "x"]):
         return self.count_data.to_dict().get(g, None)
-
-    def make_plots(self):
-        count_data = self.count_data.T
-        fig, ax = plt.subplots(1,2, figsize=(8,5))
-
-        sns.barplot(
-            x=count_data.index, 
-            y=count_data['Total'],
-            ax=ax[0],
-            palette=[COLORS['Male'], COLORS['Female'],COLORS['Non-Binary']]
-        );
-
-        ax[0].set_title(f"Total Artist Credits\n({self.chart_date})")
-
-        sns.barplot(
-            x=count_data.index, 
-            y=count_data['Percentage'],
-            ax=ax[1],
-            palette=[COLORS['Male'], COLORS['Female'],COLORS['Non-Binary']]
-        );
-
-        ax[1].set_title(f"% of Artist Credits\n({self.chart_date})")
-
-        img=BytesIO()
-        fig.savefig(img, format='png')
-        img.seek(0)
-        plot_url = base64.b64encode(img.getvalue()).decode('utf8')
-        return plot_url
 
     @property
     def chart_w_features(self) -> DataFrame:
