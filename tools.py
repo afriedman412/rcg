@@ -1,32 +1,30 @@
-from rcg import app
-from rcg.db import db_commit
-from rcg.db.routes import get_counts
+from rcg.db import db_commit, db_query
 from rcg.code.helpers import get_date
 from rcg.code.code import update_chart, Creds
 import click
 from dotenv import load_dotenv
 
 @click.group()
-@click.option("-l", "--local", is_flag=True)
-@click.option("-s", "--silence", is_flag=True)
-def tools(local, silence):
-    load_dotenv()
-    if local:
-        app.SQLALCHEMY_DATABASE_URI = "postgresql:///rcg"
-    if silence:
-        app.SQLALCHEMY_ECHO = False
+# @click.option("-l", "--local", is_flag=True)
+# @click.option("-s", "--silence", is_flag=True)
+def tools():
     pass
 
+
 @tools.command()
-def count():
-    with app.app_context():
-        c = get_counts()
-        click.echo(c)
+@click.option("-d", "--chart_date")
+def day(chart_date=None):
+    chart_date = chart_date if chart_date else get_date()
+    q = f"""SELECT * FROM chart WHERE chart_date='{chart_date}'"""
+    chart = db_query(q)
+    for c in chart:
+        print(c)
     return
 
 @tools.command()
-def xday():
-    chart_date = get_date()
+@click.option("-d", "--chart_date")
+def xday(chart_date=None):
+    chart_date = chart_date if chart_date else get_date()
     q = f"""
         DELETE FROM chart
         WHERE chart_date='{chart_date}'
@@ -38,10 +36,8 @@ def xday():
 @tools.command()
 def update():
     """adds new rcg data if it exists"""
-    creds = Creds(app)
-    with app.app_context():
-        output = update_chart(creds, app)
-        click.echo('db updated')
+    creds = Creds()
+    output = update_chart(creds)
     return output
 
 @tools.command()
@@ -58,6 +54,7 @@ def gender(artist, gender):
     return
 
 if __name__=="__main__":
+    load_dotenv()
     tools()
     
         

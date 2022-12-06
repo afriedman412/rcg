@@ -1,7 +1,9 @@
 # db init
 from pymysql import connect
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 mysql_conn = connect(
     user=os.environ.get('MYSQL_USER'),
     password=os.environ.get('MYSQL_PW'),

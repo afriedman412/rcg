@@ -111,11 +111,10 @@ def update_chart(creds: Creds): # TODO: chart object should be a class, probably
 
                 q = """
                     INSERT INTO 
-                    artist (artist_name, spotify_id, last_fm_gender, 
-                    wikipedia_gender, gender)
+                    artist (artist_name, spotify_id, last_fm_gender, wikipedia_gender, gender)
                     VALUES (""" + ", ".join(
                     f'"{p}"' for p in 
-                    [artist_spotify_id, artist_name, lfm_gender, wikipedia_gender, gender]) + ");"
+                    [artist_name, artist_spotify_id, lfm_gender, wikipedia_gender, gender]) + ");"
 
                 db_commit(q)
 
