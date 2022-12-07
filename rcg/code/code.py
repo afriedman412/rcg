@@ -88,14 +88,15 @@ def update_chart(creds: Creds): # TODO: chart object should be a class, probably
         song_name, song_spotify_id, artists, primary_artist_name, primary_artist_spotify_id = parse_track(t)
 
         q = """
-            INSERT INTO 
-            chart (song_name, song_spotify_id, primary_artist_name, 
-            primary_artist_spotify_id, chart_date)
-            VALUES (""" + ", ".join(
-            f'"{p}"' for p in 
-            [song_name, song_spotify_id, primary_artist_name, primary_artist_spotify_id, chart_date
+            INSERT INTO chart 
+            (song_name, song_spotify_id, primary_artist_name, primary_artist_spotify_id, chart_date)
+            VALUES (""" + ", ".join(f'"{p}"' for p in [
+                song_name, 
+                song_spotify_id, 
+                primary_artist_name, 
+                primary_artist_spotify_id, 
+                chart_date
             ]) + ");"
-
         db_commit(q)
 
         primary = True # only the first artist is the primary
@@ -113,8 +114,13 @@ def update_chart(creds: Creds): # TODO: chart object should be a class, probably
                     INSERT INTO 
                     artist (artist_name, spotify_id, last_fm_gender, wikipedia_gender, gender)
                     VALUES (""" + ", ".join(
-                    f'"{p}"' for p in 
-                    [artist_name, artist_spotify_id, lfm_gender, wikipedia_gender, gender]) + ");"
+                    f'"{p}"' for p in [
+                        artist_name, 
+                        artist_spotify_id, 
+                        lfm_gender, 
+                        wikipedia_gender, 
+                        gender
+                        ]) + ");"
 
                 db_commit(q)
 
@@ -128,12 +134,17 @@ def update_chart(creds: Creds): # TODO: chart object should be a class, probably
 
             if not song_check:
                 q = """
-                    INSERT INTO 
-                    artist (song_name, song_spotify_id, artist_name, artist_spotify_id, primary)
+                    INSERT INTO song 
+                    (song_name, song_spotify_id, artist_name, artist_spotify_id, `primary`)
                     VALUES (""" + ", ".join(
-                    f'"{p}"' for p in 
-                    [song_name, song_spotify_id, artist_name, artist_spotify_id, primary]) + ");"
-                
+                    f'"{p}"' for p in [
+                        song_name, 
+                        song_spotify_id, 
+                        artist_name, 
+                        artist_spotify_id, 
+                        primary
+                    ]) + ");"
+                print(q)
                 db_commit(q)
 
             primary = False # no matter what, first artist is primary
