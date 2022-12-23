@@ -29,6 +29,19 @@ def get_recent_chart():
         """
     return db_query(q)
 
+def get_counts():
+    date_ = get_date()
+    q = f"""
+        SELECT gender, count(*)
+        FROM chart
+        LEFT JOIN song on chart.song_spotify_id=song.song_spotify_id
+        LEFT JOIN artist on song.artist_spotify_id = artist.spotify_id
+        WHERE chart_date = "{date_}"
+        GROUP BY gender;
+        """
+    output = db_query(q)
+    return output
+
 def load_rap_caviar(sp):
     """
     TODO: is this redundant?

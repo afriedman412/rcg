@@ -5,7 +5,7 @@ from . import db_query
 db_routes = Blueprint("db_routes", __name__)
 
 @db_routes.route("/rcg/count/", methods=["GET"])
-def get_counts():
+def get_counts(): # probably can delete this!
     date_ = get_date()
     q = f"""
         SELECT gender, count(*)
@@ -15,7 +15,8 @@ def get_counts():
         WHERE chart_date = "{date_}"
         GROUP BY gender;
         """
-    return jsonify(db_query(q), 200)
+    output = db_query(q)
+    return jsonify(output, 200)
 
 @db_routes.route("/rcg/count/<g>", methods=["GET"])
 def get_gender(g):

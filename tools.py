@@ -1,7 +1,6 @@
 from rcg import app
 from rcg.db import db_commit
-from rcg.db.routes import get_counts
-from rcg.code.helpers import get_date
+from rcg.code.helpers import get_date, get_counts
 from rcg.code.code import update_chart, Creds
 import click
 from dotenv import load_dotenv
@@ -11,8 +10,8 @@ from dotenv import load_dotenv
 @click.option("-s", "--silence", is_flag=True)
 def tools(local, silence):
     load_dotenv()
-    if local:
-        app.SQLALCHEMY_DATABASE_URI = "postgresql:///rcg"
+    # if local:
+    #     app.SQLALCHEMY_DATABASE_URI = "postgresql:///rcg"
     if silence:
         app.SQLALCHEMY_ECHO = False
     pass
