@@ -5,11 +5,19 @@ from typing import Tuple
 from ..db import db_query
 
 def parse_track(t):
+    """
+    Unpacks track metadata from a Spotify track.
+    """
     song_name, song_spotify_id, artists = (t)
     primary_artist_name, primary_artist_spotify_id = (artists[0])
     return song_name, song_spotify_id, artists, primary_artist_name, primary_artist_spotify_id
 
-def parse_genders(l, w):
+def parse_genders(l, w) -> str:
+    """
+    Logic to decide which gender to return (m, f, n, or x)
+
+    'm' or 'f' if either is present at all, 'n' if either is 'n', otherwise 'x'.
+    """
     try:
         return next(iter({l,w}.intersection('mf')))
     except StopIteration:
@@ -18,49 +26,45 @@ def parse_genders(l, w):
         else:
             return 'x'
 
-def get_date():
+def get_date() -> str:
+    """
+    Gets today and turns it into a string.
+    """
     day = dt.now()
     return day.strftime("%Y-%m-%d")
 
-def get_recent_chart():
-    date_ = get_date()
-    q = f"""
-        SELECT * FROM chart WHERE chart_date = "{date_}"
-        """
-    return db_query(q)
+def query_w_date(q: str, date_: str=None):
+    """
+    Easier to make this a function than to do the date logic every time.
+    """
+    if not date_:
+        date_ = get_date()
+    return db_query(q.format(date_))
 
-def get_counts():
-    date_ = get_date()
-    q = f"""
+def get_chart_from_db(date_: str=None):
+    q = """
+        SELECT * FROM chart WHERE chart_date = "{}"
+        """
+    return query_w_date(q, date_)
+
+def get_counts(date_: str=None):
+    q = """
         SELECT gender, count(*)
         FROM chart
         LEFT JOIN song on chart.song_spotify_id=song.song_spotify_id
         LEFT JOIN artist on song.artist_spotify_id = artist.spotify_id
-        WHERE chart_date = "{date_}"
+        WHERE chart_date = "{}"
         GROUP BY gender;
         """
-    output = db_query(q)
-    return output
-
-def load_rap_caviar(sp):
-    """
-    TODO: is this redundant?
-    """
-    rc = sp.playlist('spotify:user:spotify:playlist:37i9dQZF1DX0XUsuxWHRQd')
-    all_tracks = [
-        (p['track']['name'], p['track']['id'], 
-        [(a['name'], a['id']) for a in p['track']['artists']]) for p in rc['tracks']['items']
-        ]
-    return all_tracks
+    return query_w_date(q, date_)
 
 def load_chart(chart_date: str=None) -> Tuple[DataFrame, str]:
     """
-    TODO: this is redundant!
+    Loads the latest Rap Caviar chart from the db and returns it as a DataFrame.
 
-    Loads the latest Rap Caviar chart from the db.
-    TODO: should be able to do this live as well!!
-    
     Assumes largest chart_date is latest chart if no chart_date provided.
+
+    TODO: is this redundant, do we need this, does it have to be pandas?
     """
     q = """
         SELECT chart.song_name, chart.primary_artist_name, chart_date, artist.artist_name, gender
@@ -79,7 +83,6 @@ def load_chart(chart_date: str=None) -> Tuple[DataFrame, str]:
             WHERE chart_date='{chart_date}'
             """
 
-    # do we need pandas?
     full_chart = pd.DataFrame(
         db_query(q), 
         columns=['song_name', 'primary_artist_name', 'chart_date', 'artist_name', 'gender'])

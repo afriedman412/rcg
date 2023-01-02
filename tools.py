@@ -1,30 +1,51 @@
 from rcg import app
 from rcg.db import db_commit
-from rcg.code.helpers import get_date, get_counts
-from rcg.code.code import update_chart, Creds
+from rcg.code.helpers import get_date, get_counts, get_chart_from_db
+from rcg.code.code import ChartLoader
 import click
+import os
 from dotenv import load_dotenv
 
 @click.group()
 @click.option("-l", "--local", is_flag=True)
-@click.option("-s", "--silence", is_flag=True)
-def tools(local, silence):
+def tools(local):
+    if local:
+        os.environ['LOCAL'] = "True"
     load_dotenv()
-    # if local:
-    #     app.SQLALCHEMY_DATABASE_URI = "postgresql:///rcg"
-    if silence:
-        app.SQLALCHEMY_ECHO = False
     pass
 
 @tools.command()
+def current():
+    chart = get_chart_from_db()
+    click.echo(chart)
+    return
+
+@tools.command()
 def count():
+    """
+    Returns gender counts for current chart.
+    """
     with app.app_context():
         c = get_counts()
         click.echo(c)
     return
 
 @tools.command()
+def current_rc():
+    """
+    Returns the rap caviar chart from Spotify.
+    """
+    cl = ChartLoader()
+    chart = cl.load_rap_caviar()
+    for c in chart:
+        click.echo(c)
+    return
+
+@tools.command()
 def xday():
+    """
+    Deletes the chart for the current day.
+    """
     chart_date = get_date()
     q = f"""
         DELETE FROM chart
@@ -37,16 +58,18 @@ def xday():
 @tools.command()
 def update():
     """adds new rcg data if it exists"""
-    creds = Creds(app)
-    with app.app_context():
-        output = update_chart(creds, app)
-        click.echo('db updated')
+    cl = ChartLoader()
+    output = cl.update_chart()
+    click.echo('db updated')
     return output
 
 @tools.command()
 @click.option("-a", "--artist")
 @click.option("-g", "--gender")
 def gender(artist, gender):
+    """
+    Sets artist's gender.
+    """
     q = f"""
     UPDATE artist
     SET gender="{gender}"
