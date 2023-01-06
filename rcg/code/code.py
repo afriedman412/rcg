@@ -50,10 +50,7 @@ class ChartLoader(Creds):
         Loads the current rap caviar playlist from Spotify.
         """
         rc = self.sp.playlist('spotify:user:spotify:playlist:37i9dQZF1DX0XUsuxWHRQd')
-        all_tracks = [
-            (p['track']['name'], p['track']['id'], 
-            [(a['name'], a['id']) for a in p['track']['artists']]) for p in rc['tracks']['items']
-            ]
+        all_tracks = [parse_track(t['track']) for t in rc['tracks']['items']]
         return all_tracks
 
     def compare_charts(self):
@@ -64,7 +61,6 @@ class ChartLoader(Creds):
         """
         current_chart = self.load_rap_caviar()
         latest_chart = get_chart_from_db()
-        print(len(current_chart), len(latest_chart))
 
         if {t[2] for t in latest_chart} == {t[1] for t in current_chart}:
             print(f"no updates, chart date {self.chart_date}")
@@ -115,25 +111,26 @@ class ChartLoader(Creds):
                     WHERE song_spotify_id="{song_spotify_id}"
                     AND artist_spotify_id="{artist_spotify_id}"; 
                     """
-                )
+        )
 
-    def add_all_info_from_one_track(self, t):
+    def add_all_info_from_one_track(self, t: tuple, add_to_chart: bool=True):
         """
         Adds the track to the db (chart table), then adds any artists that aren't already in the db, and adds the song if it's not already in the db (song table).
         """
-        song_name, song_spotify_id, artists, primary_artist_name, primary_artist_spotify_id = parse_track(t)
+        song_name, song_spotify_id, artists, primary_artist_name, primary_artist_spotify_id = (t)
 
-        if not self.chart_song_check(song_spotify_id, primary_artist_spotify_id):
-            q = """
-                INSERT INTO 
-                chart (song_name, song_spotify_id, primary_artist_name, 
-                primary_artist_spotify_id, chart_date)
-                VALUES (""" + ", ".join(
-                f'"{p}"' for p in 
-                [song_name, song_spotify_id, primary_artist_name, primary_artist_spotify_id, self.chart_date
-                ]) + ");"
+        if add_to_chart:
+            if not self.chart_song_check(song_spotify_id, primary_artist_spotify_id):
+                q = """
+                    INSERT INTO 
+                    chart (song_name, song_spotify_id, primary_artist_name, 
+                    primary_artist_spotify_id, chart_date)
+                    VALUES (""" + ", ".join(
+                    f'"{p}"' for p in 
+                    [song_name, song_spotify_id, primary_artist_name, primary_artist_spotify_id, self.chart_date
+                    ]) + ");"
 
-            db_commit(q)
+                db_commit(q)
 
         primary = True # only the first artist is the primary
         for a in artists:
@@ -143,7 +140,7 @@ class ChartLoader(Creds):
                 lfm_gender, wikipedia_gender, gender = self.gender_parse(artist_name)
                 q = """
                     INSERT INTO 
-                    artist (artist_name, spotify_id, last_fm_gender, 
+                    artist (spotify_id, artist_name, last_fm_gender, 
                     wikipedia_gender, gender)
                     VALUES (""" + ", ".join(
                     f'"{p}"' for p in 
@@ -170,7 +167,11 @@ class ChartLoader(Creds):
             for t in newest_chart:
                 self.add_all_info_from_one_track(t)
         print(f"chart date updated for {self.chart_date}")
-        return
+
+        q = f"""
+            SELECT * FROM chart WHERE chart_date = "{self.chart_date}"
+            """
+        return db_query(q)
 
     def gender_count(self, artist: str, lastfm_network=None, return_counts: bool=False) -> int:
         """

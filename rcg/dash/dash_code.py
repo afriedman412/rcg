@@ -1,10 +1,16 @@
+import os
 from dash import html
-from dash.dcc import Graph
+from dash.dcc import Graph, Location
 from pandas import DataFrame
 from plotly.graph_objects import Figure, Bar
 from ..config.config import COLORS
-from ..code.helpers import get_date
+from ..code.helpers import get_date, load_chart
 
+def bar_grapher_generator(date_: str=None):
+    date_ = os.environ['CHART_DATE'] if not date_ else date_
+    full_chart, chart_date = load_chart(date_)
+    bg = BarGrapher(full_chart, chart_date)
+    return bg
 
 class BarGrapher:
     """
@@ -89,7 +95,8 @@ class BarGrapher:
             html.Div(
                 [
                     self.bar_charter('total', self.load_plot(False)), 
-                    self.bar_charter('pct', self.load_plot(True))],
+                    self.bar_charter('pct', self.load_plot(True))
+                ],
                 className="bar-chart-container"
             )
             ]
