@@ -3,67 +3,62 @@ Inconsistant implementation of local/remote db control. Sometimes you can contro
 """
 
 import pylast
-import os
 import wikipedia
-from typing import Tuple
 from collections import Counter
-import spotipy
 from ..db import db_commit, db_query
 from .helpers import (
     get_date, 
-    parse_track, 
-    parse_genders, 
+    load_rap_caviar, 
     get_chart_from_db, 
     chart_date_check
     )
 
-class Creds:
-    """
-    Credential manager for spotify and lastfm, also used to load the actual playlist from spotify.
+# class Creds:
+#     """
+#     Credential manager for spotify and lastfm, also used to load the actual playlist from spotify.
 
-    Relies on environment, not app. No need to pass it anything, assuming dotenv loaded correctly.
-    """
-    def __init__(self):
-        """
-        Loads credentials on init.
-        """
-        self.reset_credentials()
-        return
+#     Relies on environment, not app. No need to pass it anything, assuming dotenv loaded correctly.
+#     """
+#     def __init__(self):
+#         """
+#         Loads credentials on init.
+#         """
+#         self.reset_credentials()
+#         return
 
-    def reset_credentials(self):
-        self.sp = self.access_spotify()
-        self.lfm_network = self.access_lfm()
+#     def reset_credentials(self):
+#         self.sp = self.access_spotify()
+#         self.lfm_network = self.access_lfm()
 
-    def access_lfm(self):
-        return pylast.LastFMNetwork(
-            api_key=os.environ['LAST_FM_ID'],
-            api_secret=os.environ['LAST_FM_SECRET'],
-            username=os.environ['LAST_FM_USER'],
-            password_hash=pylast.md5(os.environ['LAST_FM_PW'])
-        )
+    # def access_lfm(self):
+    #     return pylast.LastFMNetwork(
+    #         api_key=os.environ['LAST_FM_ID'],
+    #         api_secret=os.environ['LAST_FM_SECRET'],
+    #         username=os.environ['LAST_FM_USER'],
+    #         password_hash=pylast.md5(os.environ['LAST_FM_PW'])
+    #     )
 
-    def access_spotify(self):
-        spotify_cred_manager = spotipy.oauth2.SpotifyClientCredentials(
-            os.environ['SPOTIFY_ID'], 
-            os.environ['SPOTIFY_SECRET']
-            )
-        return spotipy.Spotify(client_credentials_manager=spotify_cred_manager)
+    # def access_spotify(self):
+    #     spotify_cred_manager = spotipy.oauth2.SpotifyClientCredentials(
+    #         os.environ['SPOTIFY_ID'], 
+    #         os.environ['SPOTIFY_SECRET']
+    #         )
+    #     return spotipy.Spotify(client_credentials_manager=spotify_cred_manager)
 
-class ChartLoader(Creds):
+class ChartLoader:
     def __init__(self, local: bool=False):
-        super(ChartLoader, self).__init__()
         self.chart_date = get_date()
         self.local = local
         print(f"***** ChartLoader USING {'LOCAL' if self.local else 'REMOTE'} DB *****")
         return
 
-    def load_rap_caviar(self):
-        """
-        Loads the current rap caviar playlist from Spotify.
-        """
-        rc = self.sp.playlist('spotify:user:spotify:playlist:37i9dQZF1DX0XUsuxWHRQd')
-        all_tracks = [parse_track(t['track']) for t in rc['tracks']['items']]
-        return all_tracks
+    # def load_rap_caviar(self):
+    #     """
+    #     Loads the current rap caviar playlist from Spotify.
+    #     """
+    #     rc = self.sp.playlist('spotify:user:spotify:playlist:37i9dQZF1DX0XUsuxWHRQd')
+    #     all_tracks = [parse_track(t['track']) for t in rc['tracks']['items']]
+    #     return all_tracks
 
     def compare_charts(self):
         """
@@ -71,7 +66,7 @@ class ChartLoader(Creds):
 
         Returns False if they are the same, returns the current chart if they aren't.
         """
-        current_chart = self.load_rap_caviar()
+        current_chart = load_rap_caviar()
         latest_chart = get_chart_from_db()
 
         if {t[2] for t in latest_chart} == {t[1] for t in current_chart} \
@@ -82,51 +77,51 @@ class ChartLoader(Creds):
             print(f"updating chart for {self.chart_date}")
             return current_chart
 
-    def artist_check(self, artist_spotify_id: str):
-        """
-        Is artist_spotify_id in the db?
-        """
-        return db_query(f'SELECT * from artist where spotify_id="{artist_spotify_id}"', self.local)
+    # def artist_check(self, artist_spotify_id: str):
+    #     """
+    #     Is artist_spotify_id in the db?
+    #     """
+    #     return db_query(f'SELECT * from artist where spotify_id="{artist_spotify_id}"', self.local)
 
-    def gender_parse(self, artist_name: str) -> Tuple[str]:
-        """
-        Gets the gender from last.fm and wikipedia, then determines the "official" gender.
+    # def gender_parse(self, artist_name: str) -> Tuple[str]:
+    #     """
+    #     Gets the gender from last.fm and wikipedia, then determines the "official" gender.
 
-        Returns all three.
-        """
-        lfm_gender = self.gender_count(artist_name, lastfm_network=self.lfm_network)
-        wikipedia_gender = self.gender_count(artist_name)
-        gender = parse_genders(lfm_gender, wikipedia_gender)
-        return lfm_gender, wikipedia_gender, gender
+    #     Returns all three.
+    #     """
+    #     lfm_gender = self.gender_count(artist_name, lastfm_network=self.lfm_network)
+    #     wikipedia_gender = self.gender_count(artist_name)
+    #     gender = parse_genders(lfm_gender, wikipedia_gender)
+    #     return lfm_gender, wikipedia_gender, gender
 
-    def chart_song_check(self, song_spotify_id, primary_artist_spotify_id):
-        """
-        Is the song song_spotify_id by artist_spotify_id already in the current chart?
-        """
-        return db_query(
-                    f"""
-                    SELECT * FROM chart 
-                    WHERE song_spotify_id="{song_spotify_id}"
-                    AND primary_artist_spotify_id="{primary_artist_spotify_id}"
-                    AND chart_date="{self.chart_date}";
-                    """,
-                self.local
-                )
+    # def chart_song_check(self, song_spotify_id, primary_artist_spotify_id):
+    #     """
+    #     Is the song song_spotify_id by artist_spotify_id already in the current chart?
+    #     """
+    #     return db_query(
+    #                 f"""
+    #                 SELECT * FROM chart 
+    #                 WHERE song_spotify_id="{song_spotify_id}"
+    #                 AND primary_artist_spotify_id="{primary_artist_spotify_id}"
+    #                 AND chart_date="{self.chart_date}";
+    #                 """,
+    #             self.local
+    #             )
 
-    def song_check(self, song_spotify_id, artist_spotify_id):
-        """
-        Is the song song_spotify_id by artist_spotify_id in the db?
+    # def song_check(self, song_spotify_id, artist_spotify_id):
+    #     """
+    #     Is the song song_spotify_id by artist_spotify_id in the db?
 
-        Probably redundant to do both, but extra careful!
-        """
-        return db_query(
-                    f"""
-                    SELECT * FROM song 
-                    WHERE song_spotify_id="{song_spotify_id}"
-                    AND artist_spotify_id="{artist_spotify_id}"; 
-                    """,
-                    self.local
-                )
+    #     Probably redundant to do both, but extra careful!
+    #     """
+    #     return db_query(
+    #                 f"""
+    #                 SELECT * FROM song 
+    #                 WHERE song_spotify_id="{song_spotify_id}"
+    #                 AND artist_spotify_id="{artist_spotify_id}"; 
+    #                 """,
+    #                 self.local
+    #             )
 
     def add_all_info_from_one_track(self, t: tuple, add_to_chart: bool=True):
         """

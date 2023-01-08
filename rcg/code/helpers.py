@@ -4,6 +4,7 @@ from pandas import DataFrame
 import os
 from typing import Tuple
 from pytz import timezone
+import spotipy
 from ..db import db_query
 
 def chart_date_check(local: bool):
@@ -18,19 +19,19 @@ def parse_track(t):
     primary_artist_name, primary_artist_spotify_id = (artists[0])
     return song_name, song_spotify_id, artists, primary_artist_name, primary_artist_spotify_id
 
-def parse_genders(l, w) -> str:
+def load_rap_caviar():
     """
-    Logic to decide which gender to return (m, f, n, or x)
+    Loads the current rap caviar playlist from Spotify.
+    """
+    spotify_cred_manager = spotipy.oauth2.SpotifyClientCredentials(
+        os.environ['SPOTIFY_ID'], 
+        os.environ['SPOTIFY_SECRET']
+        )
+    sp = spotipy.Spotify(client_credentials_manager=spotify_cred_manager)
 
-    'm' or 'f' if either is present at all, 'n' if either is 'n', otherwise 'x'.
-    """
-    try:
-        return next(iter({l,w}.intersection('mf')))
-    except StopIteration:
-        if l == 'n' or w == 'n':
-            return 'n'
-        else:
-            return 'x'
+    rc = sp.playlist('spotify:user:spotify:playlist:37i9dQZF1DX0XUsuxWHRQd')
+    all_tracks = [parse_track(t['track']) for t in rc['tracks']['items']]
+    return all_tracks
 
 def get_date() -> str:
     """
