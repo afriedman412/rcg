@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-from ..code.helpers import load_chart
+from ..code.code import load_chart
 from .chart_class import Chart
 
 web_routes = Blueprint("web_routes", __name__)

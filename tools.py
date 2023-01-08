@@ -6,8 +6,16 @@ import click
 from rcg.db import db_commit, db_query
 from dotenv import load_dotenv
 from rcg import app
-from rcg.code.helpers import get_date, get_counts, get_chart_from_db, parse_track, chart_date_check
-from rcg.code.code import ChartLoader
+from rcg.code.track_code import Track
+from rcg.code.code import (
+    get_date, 
+    get_counts, 
+    get_chart_from_db,
+    chart_date_check, 
+    load_rap_caviar,
+    load_one_song,
+    update_chart
+    )
 
 @click.group()
 @click.option("-l", "--local", is_flag=True)
@@ -40,8 +48,7 @@ def current_rc():
     """
     Returns the rap caviar chart from Spotify.
     """
-    cl = ChartLoader()
-    chart = cl.load_rap_caviar()
+    chart = load_rap_caviar()
     for c in chart:
         click.echo(c)
     return
@@ -66,8 +73,7 @@ def xday(ctx):
 @click.pass_context
 def update(ctx):
     """adds new rcg data if it exists"""
-    cl = ChartLoader(ctx.obj['LOCAL'])
-    output = cl.update_chart()
+    output = update_chart(ctx.obj['LOCAL'])
     if output:
         click.echo('db updated')
     return output
@@ -78,13 +84,10 @@ def add_artists(song_spotify_id: str):
     """
     Adds all artists for a song_spotify_id to the db.
     """
-    cl = ChartLoader()
-    t = cl.sp.track(song_spotify_id)
-    t = parse_track(t)
-    print(t)
-    cl.add_all_info_from_one_track(t, False)
+    track_info = load_one_song(song_spotify_id)
+    t = Track(track_info)
+    t.update_chart(False)
     return
-
 
 @tools.command()
 @click.option("-a", "--artist")

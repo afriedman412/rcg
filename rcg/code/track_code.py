@@ -4,20 +4,18 @@ from gender_code import full_gender_lookup
 class Track:
     """
     input: track info from spotipy (formatted by parse_track)
-    
-    - load group artists
-    - chart song check
-    - add to chart
-    - artist check
-    - add artist
-    - song check
-    - add song features
-    
     """
     def __init__(self, t, chart_date, local):
         self.local = local
         self.chart_date = chart_date
         self.parse_track(t)
+        self.get_group_artists()
+        return
+
+    def update_chart(self, add_to_chart: bool=True):
+        if add_to_chart and not self.chart_song_check():
+            self.chart_song()
+        self.add_all_song_features()
         return
 
     def parse_track(self, t):
@@ -28,9 +26,11 @@ class Track:
         """
         If artists is a group, get group artists.
         """
-        group_artists = db_query(
-            f'SELECT artist_name,artist_spotify_id from group_table where group_spotify_id="{self.artist_spotify_id}"', self.local)
-        self.artists.append(group_artists)
+        for artist_info in self.artists:
+            artist_name, artist_spotify_id = (artist_info)
+            group_artists = db_query(
+                f'SELECT artist_name,artist_spotify_id from group_table where group_spotify_id="{artist_spotify_id}"', self.local)
+            self.artists.append(group_artists)
         return
 
     def chart_song_check(self):
@@ -65,14 +65,13 @@ class Track:
         db_commit(q, self.local)
         return
 
-    def artist_check(self):
+    def artist_check(self, artist_name, artist_spotify_id):
         """
         Is artist_spotify_id in the db?
         """
-        return db_query(f'SELECT * from artist where spotify_id="{self.artist_spotify_id}"', self.local)
+        return db_query(f'SELECT * from artist where spotify_id="{artist_spotify_id}"', self.local)
 
-    def add_artist(self, artist_info: tuple):
-        artist_name, artist_spotify_id = (artist_info)
+    def add_artist(self, artist_name, artist_spotify_id):
         print(f"adding {artist_name} to artists")
         lfm_gender, wikipedia_gender, gender = full_gender_lookup(artist_name)
         q = """
@@ -85,11 +84,10 @@ class Track:
         db_commit(q, self.local)
         return
 
-    def song_check(self, artist_info: tuple):
+    def song_check(self, artist_name, artist_spotify_id):
         """
         Is the song song_spotify_id featuring artist_spotify_id in the db?
         """
-        artist_name, artist_spotify_id = (artist_info)
         return db_query(
                     f"""
                     SELECT * FROM song 
@@ -99,11 +97,10 @@ class Track:
                     self.local
                 )
 
-    def add_song_feature(self, artist_info: tuple, primary: bool=False):
+    def add_song_feature(self, artist_name, artist_spotify_id, primary: bool=False):
         """
         Add song feature.
         """
-        artist_name, artist_spotify_id = (artist_info)
         q = f"""
             INSERT INTO 
             song (song_name, song_spotify_id, artist_name, artist_spotify_id, `primary`)
@@ -113,14 +110,18 @@ class Track:
         db_commit(q, self.local)
         return
 
-    def add_all_song_features(self):
+    def add_all_songs_and_artists(self):
         """
         Add all song features that aren't already in the db.
         """
         primary = True # only first artist is primary
-        for artist in self.artists:
-            if not self.song_check(artist):
-                self.add_song_feature(artist)
+        for artist_info in self.artists:
+            artist_name, artist_spotify_id = (artist_info)
+            if not self.song_check(artist_name, artist_spotify_id):
+                self.add_song_feature(artist_name, artist_spotify_id, primary)
+
+            if not self.artist_check(artist_name, artist_spotify_id):
+                self.add_artist(artist_name, artist_spotify_id)
             primary = False
         return
 

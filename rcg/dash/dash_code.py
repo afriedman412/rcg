@@ -4,7 +4,7 @@ from dash.dcc import Graph, Location
 from pandas import DataFrame
 from plotly.graph_objects import Figure, Bar
 from ..config.config import COLORS
-from ..code.helpers import get_date, load_chart
+from ..code.code import get_date, load_chart
 
 def bar_grapher_generator(date_: str=None):
     date_ = os.environ['CHART_DATE'] if not date_ else date_

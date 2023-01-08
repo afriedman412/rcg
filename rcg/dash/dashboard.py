@@ -3,7 +3,7 @@ from dash.dcc import Location
 from dash.dependencies import Input, Output
 import os
 from .dash_code import bar_grapher_generator
-from ..code.helpers import load_chart
+from ..code.code import load_chart
 
 def init_dashboard(server):
     """Create a Plotly Dash dashboard."""
