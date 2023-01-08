@@ -8,7 +8,6 @@ def init_app():
     Construct core Flask application with embedded Dash app.
     """
     load_dotenv()
-    os.environ['CHART_DATE'] = dt.now().strftime("%Y-%m-%d")
     dir_ = os.path.abspath(os.path.dirname(__file__))
     connex_app = connexion.App(__name__, specification_dir=dir_)
     app = connex_app.app

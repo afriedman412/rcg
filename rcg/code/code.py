@@ -115,7 +115,7 @@ def load_chart(chart_date: str=None, local: bool=False) -> Tuple[DataFrame, str]
 
     TODO: Does it have to be pandas?
     """
-    chart_date = os.environ['CHART_DATE'] if not chart_date else chart_date
+    chart_date = get_date() if not chart_date else chart_date
     chart_date = dt.strptime(chart_date, "%Y-%m-%d").strftime("%Y-%m-%d")
 
     q = f"""
