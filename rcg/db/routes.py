@@ -1,10 +1,11 @@
 """
 Inconsistant implementation of local/remote db control. Sometimes you can control it and sometimes you can't. That's probably fine, because the default is "LOCAL" environmental variable. But it's bad form.
+
+None of these endpoints are really in use either!
 """
 
 from flask import Blueprint, jsonify
-from ..code.code import ChartLoader
-from ..code.code import get_date, get_counts
+from ..code.code import get_date, get_counts, update_chart
 from typing import Literal
 from . import db_query
 
@@ -16,8 +17,7 @@ def get_counts_web():
 
 @db_routes.route("/rcg/update/", methods=["GET"])
 def update(): 
-    cl = ChartLoader()
-    output = cl.update_chart()
+    output = update_chart()
     return jsonify(output, 200)
 
 @db_routes.route("/rcg/count/<g>", methods=["GET"])

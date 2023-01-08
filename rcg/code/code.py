@@ -8,9 +8,13 @@ import spotipy
 from .track_code import Track
 from ..db import db_query
 
-def update_chart(chart_date, local):
+def update_chart(local: bool=False):
+    """
+    Updates chart for current date. 
+    """
     current_chart = load_rap_caviar()
     latest_chart = get_chart_from_db()
+    chart_date = get_date()
 
     if {t[2] for t in latest_chart} == {t[1] for t in current_chart} \
         and get_date() == chart_date_check(local):
@@ -22,7 +26,7 @@ def update_chart(chart_date, local):
         for t in current_chart:
             t = Track(t) # parse_track is in load_rap_caviar
             t.update_chart()
-            
+
         print(f"chart date updated for {chart_date}")
 
         q = f"""
@@ -31,6 +35,9 @@ def update_chart(chart_date, local):
         return db_query(q, local)
 
 def chart_date_check(local: bool):
+    """
+    Gets the most recent chart date.
+    """
     checker = db_query("select max(chart_date) from chart", local)
     return checker[0][0]
 
@@ -43,6 +50,9 @@ def parse_track(t):
     return song_name, song_spotify_id, artists, primary_artist_name, primary_artist_spotify_id
 
 def load_spotipy():
+    """
+    Instantiates Spotipy object w credentials.
+    """
     spotify_cred_manager = spotipy.oauth2.SpotifyClientCredentials(
         os.environ['SPOTIFY_ID'], 
         os.environ['SPOTIFY_SECRET']
@@ -67,7 +77,7 @@ def load_one_song(song_spotify_id: str):
 
 def get_date() -> str:
     """
-    Gets today and turns it into a string.
+    Gets today for the Eastern time zone and turns it into a string.
     """
     day = timezone('US/Eastern').localize(dt.now())
     return day.strftime("%Y-%m-%d")
@@ -101,8 +111,9 @@ def load_chart(chart_date: str=None, local: bool=False) -> Tuple[DataFrame, str]
     """
     Loads the chart from chart_date, defaulting to the latest chart.
     
-    Returns it as a DataFrame.
-    TODO: is this redundant, do we need this, does it have to be pandas?
+    Returns it as a DataFrame, formatted for Flask HTML processing.
+
+    TODO: Does it have to be pandas?
     """
     chart_date = os.environ['CHART_DATE'] if not chart_date else chart_date
     chart_date = dt.strptime(chart_date, "%Y-%m-%d").strftime("%Y-%m-%d")

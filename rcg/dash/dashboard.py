@@ -1,9 +1,7 @@
 from dash import Dash, html
 from dash.dcc import Location
 from dash.dependencies import Input, Output
-import os
 from .dash_code import bar_grapher_generator
-from ..code.code import load_chart
 
 def init_dashboard(server):
     """Create a Plotly Dash dashboard."""
@@ -27,6 +25,9 @@ def init_dashboard(server):
     return dash_app.server
 
 def init_callbacks(dash_app):
+    """
+    Adds provided callbacks to dash_app.
+    """
     @dash_app.callback(
     Output("holder-holder", 'children'),
     Input("url", "pathname")

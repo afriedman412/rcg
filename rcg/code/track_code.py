@@ -1,5 +1,5 @@
 from ..db import db_commit, db_query
-from gender_code import full_gender_lookup
+from .gender_code import full_gender_lookup
 
 class Track:
     """

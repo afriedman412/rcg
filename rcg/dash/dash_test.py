@@ -1,3 +1,7 @@
+"""
+Not in use, testing ground for px implementation.
+"""
+
 import plotly.express as px
 from .. import app, db_
 import pandas as pd

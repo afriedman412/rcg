@@ -16,6 +16,9 @@ def full_gender_lookup(artist_name: str) -> Tuple[str]:
     return lfm_gender, wikipedia_gender, gender
 
 def access_lfm():
+    """
+    Instantiates a lastfm network object w credentials.
+    """
     return pylast.LastFMNetwork(
         api_key=os.environ['LAST_FM_ID'],
         api_secret=os.environ['LAST_FM_SECRET'],
@@ -23,7 +26,10 @@ def access_lfm():
         password_hash=pylast.md5(os.environ['LAST_FM_PW'])
     )
 
-def get_lastfm_gender(artist: str):
+def get_lastfm_gender(artist: str) -> str:
+    """
+    Loads the LastFM bio for an artists for gender processing.
+    """
     lastfm_network = access_lfm()
     try:
         bio = pylast.Artist(artist, lastfm_network).get_bio_content(language="en")
@@ -34,7 +40,10 @@ def get_lastfm_gender(artist: str):
     except pylast.WSError:
         return "l" # artist not found in last fm
 
-def get_wikipedia_gender(artist: str):
+def get_wikipedia_gender(artist: str) -> str:
+    """
+    Loads the wikipedia bio for an artists for gender processing.
+    """
     try:
         bio = wikipedia.page(artist, auto_suggest=False, redirect=True).content
         return bio
@@ -48,6 +57,9 @@ def get_wikipedia_gender(artist: str):
         return "p" # page error
 
 def gender_count(bio: str, return_counts: bool=False):
+    """
+    Guesses gender based on pronouns in bio.
+    """
     bio = Counter(bio.lower().split())
     data = [
         ('m', ['he', 'him', 'his']),
