@@ -1,6 +1,7 @@
 from dash import Dash, html
-from .dash_code import BarGrapher
-from ..code.helpers import load_chart
+from dash.dcc import Location
+from dash.dependencies import Input, Output
+from .dash_code import bar_grapher_generator
 
 def init_dashboard(server):
     """Create a Plotly Dash dashboard."""
@@ -11,10 +12,33 @@ def init_dashboard(server):
             '/static/styles/stylesheet.css',
         ]
     )
-    
-    full_chart, chart_date = load_chart()
-    bg = BarGrapher(full_chart, chart_date)
-    # Create Dash Layout
-    dash_app.layout = html.Div(children = bg.bar_charts)
+    bg = bar_grapher_generator()
+    dash_app.layout = html.Div([
+        Location(id='url', refresh=False), 
+        html.Div(
+            bg.bar_charts,
+            className="holder-holder",
+            id="holder-holder")
+        ])
+    init_callbacks(dash_app)
 
     return dash_app.server
+
+def init_callbacks(dash_app):
+    """
+    Adds provided callbacks to dash_app.
+    """
+    @dash_app.callback(
+    Output("holder-holder", 'children'),
+    Input("url", "pathname")
+    )
+    def reload_graphs(pathname):
+        date_ = pathname.split("/")[-1]
+        bg_ = bar_grapher_generator(date_)
+        return bg_.bar_charts
+
+
+
+
+
+

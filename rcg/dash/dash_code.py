@@ -1,18 +1,22 @@
+import os
 from dash import html
 from dash.dcc import Graph
 from pandas import DataFrame
 from plotly.graph_objects import Figure, Bar
 from ..config.config import COLORS
-from ..code.helpers import get_date
+from ..code.code import get_date, load_chart
 
+def bar_grapher_generator(date_: str=None):
+    date_ = get_date() if not date_ else date_
+    full_chart, chart_date = load_chart(date_)
+    bg = BarGrapher(full_chart, chart_date)
+    return bg
 
 class BarGrapher:
     """
     Splitting this out for easier code nav and consolidation of purpose.
 
     load_plot from Chart, bar_charter and bar_charts from GridMaker
-
-    Redundant for now, only doing this to test Dash integration!
     """
     def __init__(self, full_chart: DataFrame, chart_date: str=None):
         self.full_chart = full_chart
@@ -89,7 +93,8 @@ class BarGrapher:
             html.Div(
                 [
                     self.bar_charter('total', self.load_plot(False)), 
-                    self.bar_charter('pct', self.load_plot(True))],
+                    self.bar_charter('pct', self.load_plot(True))
+                ],
                 className="bar-chart-container"
             )
             ]

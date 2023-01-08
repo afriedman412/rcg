@@ -1,5 +1,6 @@
 import connexion
 from dotenv import load_dotenv
+from datetime import datetime as dt
 import os
 
 def init_app():
@@ -7,6 +8,7 @@ def init_app():
     Construct core Flask application with embedded Dash app.
     """
     load_dotenv()
+    os.environ['CHART_DATE'] = dt.now().strftime("%Y-%m-%d")
     dir_ = os.path.abspath(os.path.dirname(__file__))
     connex_app = connexion.App(__name__, specification_dir=dir_)
     app = connex_app.app
@@ -19,7 +21,6 @@ def augment_app(app):
         # Import Dash application
         from .dash.dashboard import init_dashboard
         app = init_dashboard(app)
-
         return app
 
 app = init_app()

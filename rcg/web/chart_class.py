@@ -2,7 +2,7 @@ import pandas as pd
 from pandas import DataFrame
 from typing import Tuple, Literal
 import regex as re
-from ..code.helpers import get_date
+from ..code.code import get_date
 from ..config.config import COLORS, GENDERS # TODO: also this, better
 
 from io import BytesIO
@@ -14,13 +14,11 @@ class Chart:
     """
     Preps chart data for flask template rendering.
 
-    Also does Seaborn plotting as a Dash alternative. TODO: remove this
-
     Moved "load_chart" to "code" section.
 
     TODO: consolidate the load chart protocol with the dash code
     """
-    def __init__(self, full_chart: DataFrame, chart_date: str=None):
+    def __init__(self, full_chart: DataFrame, chart_date: str):
         self.full_chart = full_chart
         self.chart_date = chart_date if chart_date else get_date()
         return
