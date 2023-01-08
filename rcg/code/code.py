@@ -1,11 +1,21 @@
+"""
+Inconsistant implementation of local/remote db control. Sometimes you can control it and sometimes you can't. That's probably fine, because the default is "LOCAL" environmental variable. But it's bad form.
+"""
+
 import pylast
 import os
 import wikipedia
 from typing import Tuple
 from collections import Counter
 import spotipy
-from .helpers import get_date, parse_track, parse_genders, get_chart_from_db
 from ..db import db_commit, db_query
+from .helpers import (
+    get_date, 
+    parse_track, 
+    parse_genders, 
+    get_chart_from_db, 
+    chart_date_check
+    )
 
 class Creds:
     """
@@ -40,9 +50,11 @@ class Creds:
         return spotipy.Spotify(client_credentials_manager=spotify_cred_manager)
 
 class ChartLoader(Creds):
-    def __init__(self):
+    def __init__(self, local: bool=False):
         super(ChartLoader, self).__init__()
         self.chart_date = get_date()
+        self.local = local
+        print(f"***** ChartLoader USING {'LOCAL' if self.local else 'REMOTE'} DB *****")
         return
 
     def load_rap_caviar(self):
@@ -62,18 +74,19 @@ class ChartLoader(Creds):
         current_chart = self.load_rap_caviar()
         latest_chart = get_chart_from_db()
 
-        if {t[2] for t in latest_chart} == {t[1] for t in current_chart}:
-            print(f"no updates, chart date {self.chart_date}")
-            return False
-
+        if {t[2] for t in latest_chart} == {t[1] for t in current_chart} \
+            and get_date() == chart_date_check(self.local):
+                print(f"no updates, chart date {self.chart_date}")
+                return False
         else:
+            print(f"updating chart for {self.chart_date}")
             return current_chart
 
     def artist_check(self, artist_spotify_id: str):
         """
         Is artist_spotify_id in the db?
         """
-        return db_query(f'SELECT * from artist where spotify_id="{artist_spotify_id}"')
+        return db_query(f'SELECT * from artist where spotify_id="{artist_spotify_id}"', self.local)
 
     def gender_parse(self, artist_name: str) -> Tuple[str]:
         """
@@ -96,7 +109,8 @@ class ChartLoader(Creds):
                     WHERE song_spotify_id="{song_spotify_id}"
                     AND primary_artist_spotify_id="{primary_artist_spotify_id}"
                     AND chart_date="{self.chart_date}";
-                    """
+                    """,
+                self.local
                 )
 
     def song_check(self, song_spotify_id, artist_spotify_id):
@@ -110,8 +124,9 @@ class ChartLoader(Creds):
                     SELECT * FROM song 
                     WHERE song_spotify_id="{song_spotify_id}"
                     AND artist_spotify_id="{artist_spotify_id}"; 
-                    """
-        )
+                    """,
+                    self.local
+                )
 
     def add_all_info_from_one_track(self, t: tuple, add_to_chart: bool=True):
         """
@@ -130,7 +145,7 @@ class ChartLoader(Creds):
                     [song_name, song_spotify_id, primary_artist_name, primary_artist_spotify_id, self.chart_date
                     ]) + ");"
 
-                db_commit(q)
+                db_commit(q, self.local)
 
         primary = True # only the first artist is the primary
         for a in artists:
@@ -145,7 +160,7 @@ class ChartLoader(Creds):
                     VALUES (""" + ", ".join(
                     f'"{p}"' for p in 
                     [artist_spotify_id, artist_name, lfm_gender, wikipedia_gender, gender]) + ");"
-                db_commit(q)
+                db_commit(q, self.local)
 
             if not self.song_check(song_spotify_id, artist_spotify_id):
                 q = f"""
@@ -154,7 +169,7 @@ class ChartLoader(Creds):
                     VALUES (""" + ", ".join(
                     f'"{p}"' for p in 
                     [song_name, song_spotify_id, artist_name, artist_spotify_id, primary]) + ");"
-                db_commit(q)
+                db_commit(q, self.local)
             primary=False
         return
 
@@ -166,12 +181,14 @@ class ChartLoader(Creds):
         if newest_chart:
             for t in newest_chart:
                 self.add_all_info_from_one_track(t)
-        print(f"chart date updated for {self.chart_date}")
+            print(f"chart date updated for {self.chart_date}")
 
-        q = f"""
-            SELECT * FROM chart WHERE chart_date = "{self.chart_date}"
-            """
-        return db_query(q)
+            q = f"""
+                SELECT * FROM chart WHERE chart_date = "{self.chart_date}"
+                """
+            return db_query(q, self.local)
+        else:
+            return
 
     def gender_count(self, artist: str, lastfm_network=None, return_counts: bool=False) -> int:
         """

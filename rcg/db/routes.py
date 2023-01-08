@@ -1,3 +1,7 @@
+"""
+Inconsistant implementation of local/remote db control. Sometimes you can control it and sometimes you can't. That's probably fine, because the default is "LOCAL" environmental variable. But it's bad form.
+"""
+
 from flask import Blueprint, jsonify
 from ..code.code import ChartLoader
 from ..code.helpers import get_date, get_counts

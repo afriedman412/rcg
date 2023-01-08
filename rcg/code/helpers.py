@@ -3,7 +3,12 @@ import pandas as pd
 from pandas import DataFrame
 import os
 from typing import Tuple
+from pytz import timezone
 from ..db import db_query
+
+def chart_date_check(local: bool):
+    checker = db_query("select max(chart_date) from chart", local)
+    return checker[0][0]
 
 def parse_track(t):
     """
@@ -31,24 +36,24 @@ def get_date() -> str:
     """
     Gets today and turns it into a string.
     """
-    day = dt.now()
+    day = timezone('US/Eastern').localize(dt.now())
     return day.strftime("%Y-%m-%d")
 
-def query_w_date(q: str, date_: str=None):
+def query_w_date(q: str, date_: str=None, local: bool=False):
     """
     Easier to make this a function than to do the date logic every time.
     """
     if not date_:
         date_ = get_date()
-    return db_query(q.format(date_))
+    return db_query(q.format(date_), local)
 
-def get_chart_from_db(date_: str=None):
+def get_chart_from_db(date_: str=None, local: bool=False):
     q = """
         SELECT * FROM chart WHERE chart_date = "{}"
         """
-    return query_w_date(q, date_)
+    return query_w_date(q, date_, local)
 
-def get_counts(date_: str=None):
+def get_counts(date_: str=None, local: bool=False):
     q = """
         SELECT gender, count(*)
         FROM chart
@@ -57,9 +62,9 @@ def get_counts(date_: str=None):
         WHERE chart_date = "{}"
         GROUP BY gender;
         """
-    return query_w_date(q, date_)
+    return query_w_date(q, date_, local)
 
-def load_chart(chart_date: str=None) -> Tuple[DataFrame, str]:
+def load_chart(chart_date: str=None, local: bool=False) -> Tuple[DataFrame, str]:
     """
     Loads the latest Rap Caviar chart from the db and returns it as a DataFrame.
 
@@ -78,20 +83,8 @@ def load_chart(chart_date: str=None) -> Tuple[DataFrame, str]:
         WHERE chart_date="{chart_date}"
         """
 
-    # if not chart_date:
-    #     chart_date = os.environ['CHART_DATE']
-    #     q += """
-    #         WHERE chart_date=(SELECT max(chart_date) FROM chart)
-    #         """
-            
-    # else:
-        # chart_date = dt.strptime(chart_date, "%Y-%m-%d").strftime("%Y-%m-%d")
-        # q += f"""
-        #     WHERE chart_date="{chart_date}"
-        #     """
-
     full_chart = pd.DataFrame(
-        db_query(q), 
+        db_query(q, local), 
         columns=['song_name', 'primary_artist_name', 'chart_date', 'artist_name', 'gender'])
     full_chart['gender'] = full_chart['gender'].map({"m": "Male", "f": "Female", "n": "Non-Binary"})
     if not chart_date:

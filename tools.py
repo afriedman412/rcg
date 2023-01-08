@@ -1,16 +1,21 @@
+"""
+Inconsistant implementation of local/remote db control. Sometimes you can control it and sometimes you can't. That's probably fine, because the default is "LOCAL" environmental variable. But it's bad form.
+"""
+
 import click
-import os
-from rcg.db import db_commit
+from rcg.db import db_commit, db_query
 from dotenv import load_dotenv
 from rcg import app
-from rcg.code.helpers import get_date, get_counts, get_chart_from_db, parse_track
+from rcg.code.helpers import get_date, get_counts, get_chart_from_db, parse_track, chart_date_check
 from rcg.code.code import ChartLoader
 
 @click.group()
 @click.option("-l", "--local", is_flag=True)
-def tools(local):
-    if local:
-        os.environ['LOCAL'] = "True"
+@click.pass_context
+def tools(ctx, local):
+    ctx.ensure_object(dict)
+    print(f"** Tools USING {'LOCAL' if local else 'REMOTE'} **")
+    ctx.obj['LOCAL'] = local
     load_dotenv()
     pass
 
@@ -42,7 +47,8 @@ def current_rc():
     return
 
 @tools.command()
-def xday():
+@click.pass_context
+def xday(ctx):
     """
     Deletes the chart for the current day.
     """
@@ -51,16 +57,19 @@ def xday():
         DELETE FROM chart
         WHERE chart_date='{chart_date}'
         """
-    db_commit(q)
+    db_commit(q, ctx.obj['LOCAL'])
+    print("max date:", chart_date_check(ctx.obj['LOCAL']))
     click.echo(f"{chart_date} data deleted")
     return
 
 @tools.command()
-def update():
+@click.pass_context
+def update(ctx):
     """adds new rcg data if it exists"""
-    cl = ChartLoader()
+    cl = ChartLoader(ctx.obj['LOCAL'])
     output = cl.update_chart()
-    click.echo('db updated')
+    if output:
+        click.echo('db updated')
     return output
 
 @tools.command()
@@ -80,7 +89,8 @@ def add_artists(song_spotify_id: str):
 @tools.command()
 @click.option("-a", "--artist")
 @click.option("-g", "--gender")
-def gender(artist, gender):
+@click.pass_context
+def gender(ctx, artist, gender):
     """
     Sets artist's gender.
     """
@@ -89,12 +99,19 @@ def gender(artist, gender):
     SET gender="{gender}"
     WHERE artist_name="{artist}";
     """
-    db_commit(q)
+    db_commit(q, ctx.obj["LOCAL"])
     click.echo(f'{artist} gender is now {gender}')
     return
 
+@tools.command()
+@click.pass_context
+def ctxtest(ctx):
+    print(ctx.obj['LOCAL'])
+    q = "select min(chart_date) from chart"
+    print(db_query(q, ctx.obj["LOCAL"]))
+    return
+
 if __name__=="__main__":
-    
     tools()
     
         
