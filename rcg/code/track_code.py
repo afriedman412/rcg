@@ -5,17 +5,18 @@ class Track:
     """
     input: track info from spotipy (formatted by parse_track)
     """
-    def __init__(self, t, chart_date, local):
+    def __init__(self, t, chart_date: str, local: bool=False):
         self.local = local
         self.chart_date = chart_date
         self.parse_track(t)
+        print(self.song_name, self.primary_artist_name, self.artists)
         self.get_group_artists()
         return
 
     def update_chart(self, add_to_chart: bool=True):
         if add_to_chart and not self.chart_song_check():
             self.chart_song()
-        self.add_all_song_features()
+        self.add_all_songs_and_artists()
         return
 
     def parse_track(self, t):
@@ -27,10 +28,12 @@ class Track:
         If artists is a group, get group artists.
         """
         for artist_info in self.artists:
+            print(artist_info)
             artist_name, artist_spotify_id = (artist_info)
             group_artists = db_query(
                 f'SELECT artist_name,artist_spotify_id from group_table where group_spotify_id="{artist_spotify_id}"', self.local)
-            self.artists.append(group_artists)
+            if group_artists:
+                self.artists.append(group_artists)
         return
 
     def chart_song_check(self):

@@ -18,12 +18,11 @@ class Chart:
 
     TODO: consolidate the load chart protocol with the dash code
     """
-    def __init__(self, full_chart: DataFrame, chart_date: str):
+    def __init__(self, full_chart: DataFrame, chart_date: str=None):
         self.full_chart = full_chart
         self.chart_date = chart_date if chart_date else get_date()
         return
     
-    @property
     def count_data(self) -> DataFrame:
         count_data = pd.DataFrame(
                 [
@@ -36,9 +35,8 @@ class Chart:
         return count_data
 
     def gender_count_data(self, g: Literal["m", "f", "n", "x"]):
-        return self.count_data.to_dict().get(g, None)
+        return self.count_data().to_dict().get(g, None)
 
-    @property
     def chart_w_features(self) -> DataFrame:
         """
         Adds "Features" column to the full chart.
@@ -55,7 +53,6 @@ class Chart:
     def remove_features_from_title(self, t):
         return re.sub(r"\s[\(\[](feat\.|with).+[\)\]]", "", t)
 
-    @property
     def total_chart_dict(self) -> dict:
         """
         Extracts gender data and converts to one dict.
@@ -93,18 +90,15 @@ class Chart:
 
         return gender_counts_full.fillna("")
 
-    @property
     def gender_counts_keys(self) -> Tuple:
         """
         Formatting things here I can't figure out how to format in Jinja
         """
         return [(f"artist_name_{g}", f"count_{g}") for g in "mfn"]
 
-    @property
     def gender_counts_full(self) -> DataFrame:
         return self.gender_counts_prep.to_dict('records')
 
-    @property
     def gender_indexes(self):
         return list(zip(self.gender_counts_prep.columns[::2], self.gender_counts_prep.columns[1::2]))
     

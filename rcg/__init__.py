@@ -17,7 +17,6 @@ def init_app():
 def augment_app(app):
     
     with app.app_context():
-        # Import Dash application
         from .dash.dashboard import init_dashboard
         app = init_dashboard(app)
         return app

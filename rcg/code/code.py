@@ -17,14 +17,14 @@ def update_chart(local: bool=False):
     chart_date = get_date()
 
     if {t[2] for t in latest_chart} == {t[1] for t in current_chart} \
-        and get_date() == chart_date_check(local):
+        and get_date() == most_recent_chart_date(local):
             print(f"no updates, chart date {chart_date}")
             return False
     else:
         print(f"updating chart for {chart_date}")
         
         for t in current_chart:
-            t = Track(t) # parse_track is in load_rap_caviar
+            t = Track(t, chart_date) # parse_track is in load_rap_caviar
             t.update_chart()
 
         print(f"chart date updated for {chart_date}")
@@ -34,7 +34,7 @@ def update_chart(local: bool=False):
             """
         return db_query(q, local)
 
-def chart_date_check(local: bool):
+def most_recent_chart_date(local: bool=False) -> str:
     """
     Gets the most recent chart date.
     """
@@ -109,13 +109,13 @@ def get_counts(date_: str=None, local: bool=False):
 
 def load_chart(chart_date: str=None, local: bool=False) -> Tuple[DataFrame, str]:
     """
-    Loads the chart from chart_date, defaulting to the latest chart.
+    Loads the chart from chart_date, defaulting to the latest chart in the db.
     
     Returns it as a DataFrame, formatted for Flask HTML processing.
 
     TODO: Does it have to be pandas?
     """
-    chart_date = get_date() if not chart_date else chart_date
+    chart_date = most_recent_chart_date() if not chart_date else chart_date
     chart_date = dt.strptime(chart_date, "%Y-%m-%d").strftime("%Y-%m-%d")
 
     q = f"""

@@ -31,9 +31,9 @@
     <h4 class="col-head {{g}}">{{g.title()}}</h4>
     {% endfor %}
 
-    {% for row in chart.gender_counts_full %}
+    {% for row in chart.gender_counts_full() %}
         {% set class="even" if loop.index % 2 == 0 else "odd" %}
-        {% for a,c in chart.gender_counts_keys %}
+        {% for a,c in chart.gender_counts_keys() %}
         <div class="grid-item {{class}} g{{loop.index}}">
             <span class="tally-artist">{{row.get(a, None)}}</span><span class="tally-count">{{row.get(c,None)}}</span>
         </div>
@@ -45,7 +45,7 @@
     <h4 class="col-head">{{c}}</h4>
     {% endfor %}
     
-    {% for row in chart.chart_w_features %}
+    {% for row in chart.chart_w_features() %}
         {% set class="even" if loop.index % 2 == 0 else "odd" %}
         {% for c in ['Song', 'Primary Artist', 'Features'] %}
         <div class="grid-item {{class}} g{{loop.index}}">
