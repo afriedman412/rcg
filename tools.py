@@ -11,7 +11,7 @@ from rcg.code.code import (
     get_date, 
     get_counts, 
     get_chart_from_db,
-    chart_date_check, 
+    most_recent_chart_date, 
     load_rap_caviar,
     load_one_song,
     update_chart
@@ -65,7 +65,7 @@ def xday(ctx):
         WHERE chart_date='{chart_date}'
         """
     db_commit(q, ctx.obj['LOCAL'])
-    print("max date:", chart_date_check(ctx.obj['LOCAL']))
+    print("max date:", most_recent_chart_date(ctx.obj['LOCAL']))
     click.echo(f"{chart_date} data deleted")
     return
 
