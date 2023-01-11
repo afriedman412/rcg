@@ -4,10 +4,10 @@ from dash.dcc import Graph
 from pandas import DataFrame
 from plotly.graph_objects import Figure, Bar
 from ..config.config import COLORS
-from ..code.code import get_date, load_chart
+from ..code.code import most_recent_chart_date, load_chart
 
 def bar_grapher_generator(date_: str=None):
-    date_ = get_date() if not date_ else date_
+    date_ = most_recent_chart_date() if not date_ else date_
     full_chart, chart_date = load_chart(date_)
     bg = BarGrapher(full_chart, chart_date)
     return bg
@@ -20,7 +20,7 @@ class BarGrapher:
     """
     def __init__(self, full_chart: DataFrame, chart_date: str=None):
         self.full_chart = full_chart
-        self.chart_date = chart_date if chart_date else get_date()
+        self.chart_date = chart_date if chart_date else most_recent_chart_date()
         return
 
     def load_plot(self, normalize: bool=False) -> Figure:

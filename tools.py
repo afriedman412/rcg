@@ -11,7 +11,7 @@ from rcg.code.code import (
     get_date, 
     get_counts, 
     get_chart_from_db,
-    chart_date_check, 
+    most_recent_chart_date, 
     load_rap_caviar,
     load_one_song,
     update_chart
@@ -65,7 +65,7 @@ def xday(ctx):
         WHERE chart_date='{chart_date}'
         """
     db_commit(q, ctx.obj['LOCAL'])
-    print("max date:", chart_date_check(ctx.obj['LOCAL']))
+    print("max date:", most_recent_chart_date(ctx.obj['LOCAL']))
     click.echo(f"{chart_date} data deleted")
     return
 
@@ -104,6 +104,26 @@ def gender(ctx, artist, gender):
     """
     db_commit(q, ctx.obj["LOCAL"])
     click.echo(f'{artist} gender is now {gender}')
+    return
+
+@tools.command()
+@click.pass_context
+def reload(ctx):
+    """
+    xday and update combined
+    """
+    old_max_date = most_recent_chart_date(ctx.obj['LOCAL'])
+    click.echo(f"deleting chart date: {old_max_date}")
+    q = f"""
+        DELETE FROM chart
+        WHERE chart_date="{old_max_date}"
+        """
+    db_commit(q, ctx.obj['LOCAL'])
+    new_max_date = most_recent_chart_date(ctx.obj['LOCAL'])
+    click.echo(f"new max date: {new_max_date}")
+    output = update_chart(ctx.obj['LOCAL'])
+    if output:
+        click.echo('db updated')
     return
 
 @tools.command()
