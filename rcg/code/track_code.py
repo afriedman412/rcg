@@ -33,7 +33,7 @@ class Track:
             group_artists = db_query(
                 f'SELECT artist_name,artist_spotify_id from group_table where group_spotify_id="{artist_spotify_id}"', self.local)
             if group_artists:
-                self.artists.append(group_artists)
+                self.artists += list(group_artists)
         return
 
     def chart_song_check(self):

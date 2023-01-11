@@ -108,6 +108,26 @@ def gender(ctx, artist, gender):
 
 @tools.command()
 @click.pass_context
+def reload(ctx):
+    """
+    xday and update combined
+    """
+    old_max_date = most_recent_chart_date(ctx.obj['LOCAL'])
+    click.echo(f"deleting chart date: {old_max_date}")
+    q = f"""
+        DELETE FROM chart
+        WHERE chart_date="{old_max_date}"
+        """
+    db_commit(q, ctx.obj['LOCAL'])
+    new_max_date = most_recent_chart_date(ctx.obj['LOCAL'])
+    click.echo(f"new max date: {new_max_date}")
+    output = update_chart(ctx.obj['LOCAL'])
+    if output:
+        click.echo('db updated')
+    return
+
+@tools.command()
+@click.pass_context
 def ctxtest(ctx):
     print(ctx.obj['LOCAL'])
     q = "select min(chart_date) from chart"
