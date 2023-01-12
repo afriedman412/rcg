@@ -19,7 +19,7 @@ class Chart:
     TODO: consolidate the load chart protocol with the dash code
     """
     def __init__(self, full_chart: DataFrame, chart_date: str=None):
-        self.full_chart = full_chart
+        self.full_chart = full_chart.fillna("")
         self.chart_date = chart_date if chart_date else get_date()
         return
     
