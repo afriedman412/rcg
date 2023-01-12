@@ -108,6 +108,17 @@ def gender(ctx, artist, gender):
 
 @tools.command()
 @click.pass_context
+def set_group_genders(ctx):
+    q = """UPDATE artist 
+            SET gender = "g"
+            WHERE spotify_id in (SELECT group_spotify_id FROM group_table)
+        """
+    db_commit(q, ctx.obj["LOCAL"])
+    click.echo(f'group genders updated')
+    return
+    
+@tools.command()
+@click.pass_context
 def ctxtest(ctx):
     print(ctx.obj['LOCAL'])
     q = "select min(chart_date) from chart"

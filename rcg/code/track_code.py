@@ -1,13 +1,15 @@
 from ..db import db_commit, db_query
 from .gender_code import full_gender_lookup
 
+
 class Track:
     """
     input: track info from spotipy (formatted by parse_track)
     """
-    def __init__(self, t, chart_date: str, local: bool=False):
+    def __init__(self, t, chart_date: str=None, local: bool=False):
+        from .code import get_date
         self.local = local
-        self.chart_date = chart_date
+        self.chart_date = chart_date if chart_date else get_date()
         self.parse_track(t)
         print(self.song_name, self.primary_artist_name, self.artists)
         self.get_group_artists()
@@ -33,7 +35,7 @@ class Track:
             group_artists = db_query(
                 f'SELECT artist_name,artist_spotify_id from group_table where group_spotify_id="{artist_spotify_id}"', self.local)
             if group_artists:
-                self.artists.append(group_artists)
+                self.artists += group_artists
         return
 
     def chart_song_check(self):

@@ -4,6 +4,10 @@ from .chart_class import Chart
 
 web_routes = Blueprint("web_routes", __name__)
 
+@web_routes.route("/favicon.ico")
+def load_favicon():
+    return
+
 @web_routes.route("/")
 @web_routes.route("/<chart_date>")
 @web_routes.route("/web/<chart_date>")

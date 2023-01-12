@@ -36,7 +36,7 @@ def get_lastfm_gender(artist: str) -> str:
         if (not bio) or (bio.startswith('<a href="https://www.last.fm/music/')):
             return "x" # no last fm bio
         else:
-            return bio
+            return gender_count(bio)
     except pylast.WSError:
         return "l" # artist not found in last fm
 
@@ -46,7 +46,7 @@ def get_wikipedia_gender(artist: str) -> str:
     """
     try:
         bio = wikipedia.page(artist, auto_suggest=False, redirect=True).content
-        return bio
+        return gender_count(bio)
     except wikipedia.DisambiguationError as e:
         try:
             artist_ = next(o for o in e.options if 'rapper' in o)
