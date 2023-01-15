@@ -9,7 +9,7 @@ class Track:
     """
     def __init__(self, t, chart_date: str=None):
         from .code import get_date
-        self.local =  True if os.environ.get('LOCAL') else False
+        self.local = True if os.environ.get('LOCAL') in ("True", "true", "1") else False
         self.chart_date = chart_date if chart_date else get_date()
         self.parse_track(t)
         print(self.song_name, self.primary_artist_name, self.artists)

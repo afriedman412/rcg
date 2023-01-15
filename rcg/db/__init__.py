@@ -4,8 +4,8 @@ import os
 
 def make_sql_connection(local: bool=False):
     if local is None:
-        local = True if os.environ.get('LOCAL') else False
-        print('using env to localize:', "local" if os.environ.get('LOCAL') else "remote")
+        local = True if os.environ.get('LOCAL') in ("True", "true", "1") else False
+        print('using env to localize:', "local" if local else "remote")
 
     if local:
         mysql_conn = connect(
