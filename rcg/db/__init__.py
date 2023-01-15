@@ -2,7 +2,7 @@
 from pymysql import connect
 import os
 
-def make_sql_connection(local: bool=False):
+def make_sql_connection(local: bool=None):
     if local is None:
         local = True if os.environ.get('LOCAL') in ("True", "true", "1") else False
         print('using env to localize:', "local" if local else "remote")

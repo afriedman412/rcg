@@ -8,12 +8,15 @@ import spotipy
 from .track_code import Track
 from ..db import db_query
 
+def local_check():
+    return os.environ.get('LOCAL') in ("True", "true", 1)
+
 def update_chart(local: bool=False):
     """
     Updates chart for current date. 
     """
     os.environ['LOCAL'] = "true" if local else "false"
-    print("update:", "local" if os.environ['LOCAL'] else "remote")
+    print("update:", "local" if local_check() else "remote")
     current_chart = load_rap_caviar()
     latest_chart = get_chart_from_db()
     chart_date = get_date()
@@ -122,7 +125,7 @@ def load_chart(chart_date: str=None, local: bool=False) -> Tuple[DataFrame, str]
     TODO: Does it have to be pandas?
     """
     os.environ['LOCAL'] = "true" if local else "false"
-    print("load:", "local" if os.environ['LOCAL'] else "remote")
+    print("load:", "local" if local_check() else "remote")
     chart_date = most_recent_chart_date() if not chart_date else chart_date
     print("loading chart date:", chart_date)
     chart_date = dt.strptime(chart_date, "%Y-%m-%d").strftime("%Y-%m-%d")
