@@ -3,6 +3,10 @@ from pymysql import connect
 import os
 
 def make_sql_connection(local: bool=False):
+    if local is None:
+        local = True if os.environ.get('LOCAL') else False
+        print('using env to localize:', "local" if os.environ['LOCAL'] else "remote")
+
     if local:
         mysql_conn = connect(
             user=os.environ.get('LOCAL_MYSQL_USER'),
@@ -24,9 +28,6 @@ def make_sql_connection(local: bool=False):
     return mysql_conn
 
 def db_commit(q, local: bool=None):
-    if local is None:
-        print('using env to localize')
-        local = os.environ.get('LOCAL')
     conn = make_sql_connection(local)
     with conn.cursor() as cur:
         cur.execute(q)
@@ -35,9 +36,6 @@ def db_commit(q, local: bool=None):
     return
 
 def db_query(q, local: bool=None):
-    if local is None:
-        print('using env to localize')
-        local = os.environ.get('LOCAL')
     conn = make_sql_connection(local)
     with conn.cursor() as cur:
         cur.execute(q)

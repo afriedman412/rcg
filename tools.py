@@ -1,7 +1,7 @@
 """
 Inconsistant implementation of local/remote db control. Sometimes you can control it and sometimes you can't. That's probably fine, because the default is "LOCAL" environmental variable. But it's bad form.
 """
-
+import os
 import click
 from rcg.db import db_commit, db_query
 from dotenv import load_dotenv
@@ -23,8 +23,9 @@ from rcg.code.code import (
 def tools(ctx, local):
     ctx.ensure_object(dict)
     print(f"** Tools USING {'LOCAL' if local else 'REMOTE'} **")
-    ctx.obj['LOCAL'] = local
+    ctx.obj['LOCAL'] = "True" if local else "False"
     load_dotenv()
+    os.environ['LOCAL'] = "True" if local else "False"
     pass
 
 @tools.command()
@@ -65,7 +66,7 @@ def xday(ctx):
         WHERE chart_date='{chart_date}'
         """
     db_commit(q, ctx.obj['LOCAL'])
-    print("max date:", most_recent_chart_date(ctx.obj['LOCAL']))
+    print("max date:", most_recent_chart_date())
     click.echo(f"{chart_date} data deleted")
     return
 
@@ -159,10 +160,9 @@ def set_group_genders(ctx):
     
 @tools.command()
 @click.pass_context
-def ctxtest(ctx):
-    print(ctx.obj['LOCAL'])
-    q = "select min(chart_date) from chart"
-    print(db_query(q, ctx.obj["LOCAL"]))
+def max_date(ctx):
+    q = "select max(chart_date) from chart"
+    print(db_query(q, ctx.obj["LOCAL"])[0][0])
     return
 
 if __name__=="__main__":

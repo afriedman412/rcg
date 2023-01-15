@@ -12,12 +12,13 @@ def update_chart(local: bool=False):
     """
     Updates chart for current date. 
     """
+    os.environ['LOCAL'] = "true" if local else "false"
+    print("update:", "local" if os.environ['LOCAL'] else "remote")
     current_chart = load_rap_caviar()
     latest_chart = get_chart_from_db()
     chart_date = get_date()
 
-    if {t[2] for t in latest_chart} == {t[1] for t in current_chart} \
-        and get_date() == most_recent_chart_date(local):
+    if new_chart_check(latest_chart, current_chart):
             print(f"no updates, chart date {chart_date}")
             return False
     else:
@@ -32,13 +33,18 @@ def update_chart(local: bool=False):
         q = f"""
             SELECT * FROM chart WHERE chart_date = "{chart_date}"
             """
-        return db_query(q, local)
+        return db_query(q)
 
-def most_recent_chart_date(local: bool=False) -> str:
+def new_chart_check(latest_chart, current_chart):
+
+    return {t[2] for t in latest_chart} == {t[1] for t in current_chart} \
+        and get_date() == most_recent_chart_date()
+
+def most_recent_chart_date() -> str:
     """
     Gets the most recent chart date.
     """
-    checker = db_query("select max(chart_date) from chart", local)
+    checker = db_query("select max(chart_date) from chart")
     return checker[0][0]
 
 def parse_track(t):
@@ -90,13 +96,13 @@ def query_w_date(q: str, date_: str=None, local: bool=False):
         date_ = get_date()
     return db_query(q.format(date_), local)
 
-def get_chart_from_db(date_: str=None, local: bool=False):
+def get_chart_from_db(date_: str=None):
     q = """
         SELECT * FROM chart WHERE chart_date = "{}"
         """
-    return query_w_date(q, date_, local)
+    return query_w_date(q, date_)
 
-def get_counts(date_: str=None, local: bool=False):
+def get_counts(date_: str=None):
     q = """
         SELECT gender, count(*)
         FROM chart
@@ -105,7 +111,7 @@ def get_counts(date_: str=None, local: bool=False):
         WHERE chart_date = "{}"
         GROUP BY gender;
         """
-    return query_w_date(q, date_, local)
+    return query_w_date(q, date_)
 
 def load_chart(chart_date: str=None, local: bool=False) -> Tuple[DataFrame, str]:
     """
@@ -115,7 +121,10 @@ def load_chart(chart_date: str=None, local: bool=False) -> Tuple[DataFrame, str]
 
     TODO: Does it have to be pandas?
     """
+    os.environ['LOCAL'] = "true" if local else "false"
+    print("load:", "local" if os.environ['LOCAL'] else "remote")
     chart_date = most_recent_chart_date() if not chart_date else chart_date
+    print("loading chart date:", chart_date)
     chart_date = dt.strptime(chart_date, "%Y-%m-%d").strftime("%Y-%m-%d")
 
     q = f"""
@@ -127,7 +136,7 @@ def load_chart(chart_date: str=None, local: bool=False) -> Tuple[DataFrame, str]
         """
 
     full_chart = pd.DataFrame(
-        db_query(q, local), 
+        db_query(q), 
         columns=['song_name', 'primary_artist_name', 'chart_date', 'artist_name', 'gender'])
     full_chart['gender'] = full_chart['gender'].map({"m": "Male", "f": "Female", "n": "Non-Binary"})
     if not chart_date:
