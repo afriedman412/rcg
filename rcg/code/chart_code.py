@@ -1,8 +1,8 @@
 import pandas as pd
 from pandas import DataFrame
-from typing import Tuple, Literal
+from typing import Tuple, Literal, List
 import regex as re
-from ..code.code import get_date
+from .code import get_date
 from ..config.config import COLORS, GENDERS # TODO: also this, better
 
 from io import BytesIO
@@ -101,4 +101,11 @@ class Chart:
 
     def gender_indexes(self):
         return list(zip(self.gender_counts_prep.columns[::2], self.gender_counts_prep.columns[1::2]))
-    
+
+def chart_delta(new_chart: Chart, old_chart: Chart) -> Tuple[List]:
+    """
+    Returns a list of tracks in the new chart and not in the old chart, and a list of tracks in the old chart but not in the new chart.
+    """
+    not_in_old = [s for s in new_chart.chart_w_features() if s not in old_chart.chart_w_features()]
+    not_in_new = [s for s in old_chart.chart_w_features() if s not in new_chart.chart_w_features()]
+    return not_in_old, not_in_new

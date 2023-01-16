@@ -3,13 +3,12 @@ import pandas as pd
 from pandas import DataFrame
 import os
 from typing import Tuple
-from pytz import timezone
 import spotipy
 from .track_code import Track
 from ..db import db_query
-
-def local_check():
-    return os.environ.get('LOCAL') in ("True", "true", 1)
+from .helpers import (
+    local_check, get_date, most_recent_chart_date, query_w_date
+)
 
 def update_chart(local: bool=False):
     """
@@ -42,13 +41,6 @@ def new_chart_check(latest_chart, current_chart):
 
     return {t[2] for t in latest_chart} == {t[1] for t in current_chart} \
         and get_date() == most_recent_chart_date()
-
-def most_recent_chart_date() -> str:
-    """
-    Gets the most recent chart date.
-    """
-    checker = db_query("select max(chart_date) from chart")
-    return checker[0][0]
 
 def parse_track(t):
     """
@@ -84,21 +76,6 @@ def load_one_song(song_spotify_id: str):
     track_info = parse_track(track_info)
     return track_info
 
-def get_date() -> str:
-    """
-    Gets today for the Eastern time zone and turns it into a string.
-    """
-    day = timezone('US/Eastern').localize(dt.now())
-    return day.strftime("%Y-%m-%d")
-
-def query_w_date(q: str, date_: str=None, local: bool=False):
-    """
-    Easier to make this a function than to do the date logic every time.
-    """
-    if not date_:
-        date_ = get_date()
-    return db_query(q.format(date_), local)
-
 def get_chart_from_db(date_: str=None):
     q = """
         SELECT * FROM chart WHERE chart_date = "{}"
@@ -115,6 +92,7 @@ def get_counts(date_: str=None):
         GROUP BY gender;
         """
     return query_w_date(q, date_)
+
 
 def load_chart(chart_date: str=None, local: bool=False) -> Tuple[DataFrame, str]:
     """
