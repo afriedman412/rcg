@@ -13,7 +13,7 @@ def make_sql_connection(local: bool=None):
             password=os.environ.get('LOCAL_MYSQL_PW'),
             host=os.environ.get('LOCAL_MYSQL_URL'),
             port=3306,
-            db='rcg-testo'
+            db=os.environ.get('LOCAL_MYSQL_DB')
         )
 
     else:
@@ -22,7 +22,7 @@ def make_sql_connection(local: bool=None):
             password=os.environ.get('MYSQL_PW'),
             host=os.environ.get('MYSQL_URL'),
             port=3306,
-            db='rcg'
+            db=os.environ.get('MYSQL_DB')
         )
     
     return mysql_conn
